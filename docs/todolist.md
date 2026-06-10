@@ -58,7 +58,7 @@ This checklist is ordered around the MVP golden path:
 
 ### Auth, Demo, And Persistence
 
-- [x] Integrate Clerk as the only auth provider.
+- [/] Integrate Clerk as the only auth provider (backend pipeline complete; frontend UI pending).
 - [x] Keep real workspace data scoped by Clerk user ID.
 - [x] Preserve a stable guest/demo workspace for judges.
 - [x] Add a basic S3 service wrapper or presign endpoint for import/export or generated assets.
@@ -83,6 +83,15 @@ This checklist is ordered around the MVP golden path:
 
 ## P1 - Quality And Maintainability
 
+### Clerk Frontend Completion
+
+- [ ] Create `middleware.ts` at project root with `clerkMiddleware()` to protect authenticated routes while keeping demo and public pages accessible.
+- [ ] Create `/sign-in` and `/sign-up` routes with Clerk `<SignIn />` and `<SignUp />` components.
+- [ ] Replace static "AC" avatar in `topbar.tsx` with Clerk `<UserButton />` and conditional "Sign in" link for unauthenticated users.
+- [ ] Verify the demo path remains fully functional when `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` is absent.
+
+### General Quality
+
 - [x] Add next-intl with `en-US` as default and `zh-CN` as secondary locale.
 - [ ] Move user-facing copy into locale message files after route structure stabilizes.
 - [x] Add typed API response helpers using the `ok/data/error/traceId` shape.
@@ -91,6 +100,62 @@ This checklist is ordered around the MVP golden path:
 - [ ] Improve accessibility for keyboard navigation, form labels, focus states, and errors.
 - [ ] Review LCP, INP, and CLS for the demo path after the UI stabilizes.
 - [ ] Keep public copy English-first and avoid Chinese-only judge-facing explanations.
+
+## P1.5 - Public Metrics Sync (No-Auth Data Feedback)
+
+### Entity And Service
+
+- [ ] Add optional `youtubeChannelId` to `ProfileEntity` and `accountDnaSchema`.
+- [ ] Add optional `externalId` and `publishedUrl` to `PostEntity` and `postSchema`.
+- [ ] Create `lib/services/metrics-fetcher-service.ts` with `fetchYoutubeVideoStats(videoId)` using YouTube Data API v3 public endpoint and server-side `GOOGLE_PUBLIC_API_KEY`.
+- [ ] Add `GOOGLE_PUBLIC_API_KEY` to `lib/env.ts` validation and `.env.example`.
+
+### API Route
+
+- [ ] Create `/api/v1/posts/[id]/sync/route.ts` (PATCH) that accepts `externalId`, calls `fetchYoutubeVideoStats`, persists via `saveMetric()`, and returns the synced metric with source tag.
+- [ ] Handle 403 quota-exceeded and network errors gracefully with typed error responses.
+
+### Frontend Integration
+
+- [ ] Extend `MetricEntryPanel` with a "Sync Live Stats" input field and button above the manual form.
+- [ ] Pre-fill a well-known public YouTube video ID as placeholder for instant judge testing.
+- [ ] Show `(Live synced)` badge on metrics originating from the public API.
+- [ ] Ensure manual metric entry remains fully functional when the Google API key is absent.
+
+### Submission Evidence
+
+- [ ] Add YouTube Data API v3 to the architecture diagram as an optional external data source.
+- [ ] Mention no-auth public data sync in Devpost description as a differentiated feature.
+
+## P1.6 - Premium UI & Tone Sandbox
+
+### Mockup Workspace
+- [ ] Create `components/mockup-preview.tsx` supporting LinkedIn, X, and Rednote.
+- [ ] Implement desktop-like LinkedIn post styling, card headers, reactions, and "See more..." truncation.
+- [ ] Implement mobile-like X dark-mode post styling, retweet/heart/views metrics icons.
+- [ ] Implement mobile-like Rednote double-column view with double-tap like, description tags, and mock comments.
+- [ ] Embed the mockup previews as tabs inside `app/post/[id]/page.tsx` platform variant editor.
+
+### Tone & Hook Sandbox
+- [ ] Create `/api/v1/posts/[id]/rewrite/hook` endpoint for generating 3 alternative opening lines.
+- [ ] Add "Hook Enhancer" floating widget or popup to replace/paste selected openers in editor.
+- [ ] Create "Tone Sandbox" dropdown in the editor, calling the rewrite API with customized tone overrides.
+- [ ] Validate Sandbox inputs and ensure fallback values are stable when LLM fails.
+
+## P1.7 - CSV S3 Backup & Actionable Tasks
+
+### S3 & CSV Import
+- [ ] Provide CSV template download (`/public/templates/creatoros-metrics-template.csv`).
+- [ ] Add dropzone UI in `/analytics` for CSV selection and parsing.
+- [ ] Use `assets/presign` to fetch a signed upload URL and store raw CSV in S3 under `imports/`.
+- [ ] Map parsed CSV rows to post metrics entities.
+- [ ] Show a preview delta comparison table before committing parsed data.
+
+### Closed Loop Tasks
+- [ ] Define Task Entity / model for workspace action items if it is separate from posts.
+- [ ] Create `/api/v1/analytics/insights/actionable` (POST) to extract task items from AI insights text.
+- [ ] Save generated tasks through the content repository layer.
+- [ ] Render action items as checkout cards on `/dashboard` and task marks on `/calendar`.
 
 ## Submission
 

@@ -61,15 +61,27 @@ Acceptance criteria:
 
 Add identity without blocking judge access.
 
+Completed (backend pipeline):
+
 - Integrate Clerk as the only authentication provider.
-- Protect real user workspace routes where appropriate.
 - Preserve a stable guest/demo path that does not require private social credentials.
 - Keep demo workspace data isolated from real Clerk user data.
 - Avoid storing real user sample accounts or secrets in the repository.
+- Implement `resolveWorkspace()` to resolve Clerk session to `USER#clerkUserId` or fall back to `DEMO#judge`.
+- Implement `requireAdmin()` guard for admin-only API routes.
+
+Pending (frontend UI layer):
+
+- Create `middleware.ts` at project root using `clerkMiddleware()` to protect authenticated routes while keeping the demo path and public pages accessible.
+- Create `/sign-in` and `/sign-up` routes with Clerk `<SignIn />` and `<SignUp />` components.
+- Replace the static "AC" avatar placeholder in `topbar.tsx` with Clerk `<UserButton />`, conditionally showing a "Sign in" link when the user is unauthenticated.
+- Ensure the demo path (`DEMO#judge` workspace) remains fully functional when Clerk environment variables are absent.
 
 Acceptance criteria:
 
-- Normal users can access their own workspace through Clerk identity.
+- Normal users can sign up, sign in, and access their own workspace through Clerk identity.
+- The topbar shows the real user avatar and sign-out control after login.
+- Protected routes redirect unauthenticated users to `/sign-in` instead of silently falling back to demo data.
 - Judges can still complete the demo path without account setup friction.
 - Server-side code remains the boundary for credentials and privileged operations.
 
@@ -110,6 +122,58 @@ Acceptance criteria:
 - Failed generation shows a useful error state and does not corrupt stored data.
 - The golden path remains usable with demo data if an AI provider is unavailable.
 
+### 5.5 Public Metrics Sync
+
+Add a no-auth data feedback path so creators can pull real performance numbers without OAuth.
+
+- Add an optional `youtubeChannelId` field to the Profile entity and an optional `externalId` / `publishedUrl` pair to the Post entity.
+- Create `lib/services/metrics-fetcher-service.ts` to call YouTube Data API v3 public endpoints using a server-side `GOOGLE_PUBLIC_API_KEY`. No user OAuth token is involved.
+- Add a `/api/v1/posts/[id]/sync` route that accepts an `externalId`, fetches live stats (views, likes, comments), and persists them through `saveMetric()`.
+- Extend the `MetricEntryPanel` in the post detail page with a "Sync Live Stats" input and button so users can paste a YouTube Video ID and pull real numbers in one click.
+- Pre-fill a well-known public video ID as the placeholder so judges can test instantly.
+- Show a `(Live synced)` badge next to metrics that originate from the public API.
+- Keep the Google API key server-side only; never expose it to the browser.
+- Gracefully degrade: if the key is not configured or the API call fails, the manual entry form remains fully functional.
+
+Acceptance criteria:
+
+- A judge can paste any public YouTube video ID, click sync, and see real views/likes/comments appear in the metrics panel.
+- Synced metrics are persisted to DynamoDB and feed into the AI insight generation loop.
+- The feature works without any social platform OAuth or user login on the provider side.
+- Manual metric entry is unaffected when the Google API key is absent.
+
+### 5.6 Premium Features (Visual Mockup & Tone Sandbox)
+
+Add high-fidelity visual preview and immediate editing capabilities to elevate the WOW factor and utility of the post-detail screen.
+
+- Implement a mockup component (`VisualMockupWorkspace`) supporting tabbed previews for LinkedIn, X (Twitter), and Rednote (小红书).
+  - LinkedIn: Render desktop layout with user avatar, name, mock reaction buttons (Like, Celebrate), and a "See more..." truncation behavior.
+  - X: Render a dark-mode mobile post layout with action counts and retweet/heart icons.
+  - Rednote: Render a phone-sized double-column layout showing card layout, hearts count, and mock comment inputs.
+- Add client-side and server-side Hook & Tone Sandbox controls.
+  - Provide an inline "Hook Enhancer" widget that proposes 3 alternative openers (e.g., question, controversial, data-driven).
+  - Provide a "Tone Sandbox" dropdown to toggle the variant draft's tone among "Analytic", "Playful", "Provocative", and "Empathetic" based on the workspace Account DNA.
+
+Acceptance criteria:
+- A user can toggle a visual preview for each platform and see a simulated platform UI instead of raw text.
+- The preview matches platform-specific typography, margins, and icons.
+- Post variants can be re-run for tone adjustments directly inside the editor without modifying the master plan.
+
+### 5.7 Closed Loop (CSV Import & Actionable Tasks)
+
+Fulfill PRD storage, import/export, and metric requirements while closing the loop from analysis back to actions.
+
+- Design a standard CSV template for multi-platform metrics (PostID, Views, Likes, Comments, Saves, Followers).
+- Add a CSV upload panel inside `/analytics` with drag-and-drop support, uploading raw files to S3 under `imports/` via server-side presigned URLs, and parsing the CSV client-side.
+- Render a mapping preview screen before committing changes, showing data deltas between the CSV and current database state.
+- Implement an AI Actionable Task Generator endpoint (`POST /api/v1/analytics/insights/actionable`) that takes the latest analytics insights and converts them into 2-3 specific task entities.
+- Persist these generated tasks as post reminders or calendar task cards in the workspace database.
+
+Acceptance criteria:
+- CSV uploads successfully backup to Amazon S3.
+- Parsing parses data correctly, displaying changes before saving to DynamoDB via ElectroDB repository methods.
+- Insight pages provide a "Generate Action Items" button, which successfully spawns tasks visible on the dashboard and calendar.
+
 ### 6. Submission Hardening
 
 Stabilize the product and judging materials.
@@ -147,9 +211,12 @@ Do not add these to the MVP without explicit approval:
 - Realtime collaboration.
 - Agency multi-client dashboard.
 
+Public API read-only access (e.g. YouTube Data API v3 with a server-side API key) is allowed because it does not require user OAuth, does not write to external platforms, and does not introduce social login flows. Keep this boundary clear in code reviews.
+
 ## Risks
 
 - The product may look like a generic AI planner if the workflow loop is not visible on every main screen.
 - DynamoDB may look superficial unless real persistence, access patterns, deployment evidence, and repository boundaries are implemented clearly.
 - The demo can become fragile if the guest workspace depends on live provider success.
 - Submission quality can suffer if video, Devpost copy, architecture diagram, and screenshots are left until the final day.
+- YouTube Data API v3 has a daily quota (10,000 units/day by default). A single video stats request costs 1 unit, so this is unlikely to be a problem for hackathon usage, but the service must handle 403 quota-exceeded responses gracefully.
