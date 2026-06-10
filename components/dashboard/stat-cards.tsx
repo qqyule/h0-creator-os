@@ -19,7 +19,10 @@ export function StatCards() {
             <div className="flex items-center gap-3">
               <span
                 className="flex h-10 w-10 items-center justify-center rounded-xl"
-                style={{ backgroundColor: stat.tint, color: stat.color }}
+                style={{
+                  backgroundColor: `color-mix(in oklch, ${stat.color} 22%, transparent)`,
+                  color: stat.color,
+                }}
               >
                 <Icon className="h-5 w-5" />
               </span>
@@ -50,7 +53,7 @@ export function StatCards() {
                     stroke={8}
                     segments={[
                       { value: stat.series[0], color: stat.color },
-                      { value: 100 - stat.series[0], color: "#eef2f7" },
+                      { value: 100 - stat.series[0], color: "var(--muted)" },
                     ]}
                   />
                 )}

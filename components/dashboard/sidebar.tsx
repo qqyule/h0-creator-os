@@ -72,7 +72,7 @@ export function Sidebar() {
         </button>
 
         <button className="flex items-center gap-3 rounded-xl border border-border bg-card px-3 py-2.5 text-left transition-colors hover:bg-accent/40">
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-100 text-sm font-semibold text-amber-700">
+          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/15 text-sm font-semibold text-primary">
             Y
           </span>
           <span className="min-w-0 flex-1">

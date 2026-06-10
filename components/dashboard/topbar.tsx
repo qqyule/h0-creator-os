@@ -1,4 +1,5 @@
 import { Bell, ChevronDown, Search } from "lucide-react"
+import { ThemeToggle } from "@/components/theme-toggle"
 
 export function Topbar() {
   return (
@@ -25,6 +26,8 @@ export function Topbar() {
             ⌘ K
           </kbd>
         </div>
+
+        <ThemeToggle />
 
         <button
           aria-label="Notifications"

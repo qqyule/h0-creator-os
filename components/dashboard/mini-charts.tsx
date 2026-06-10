@@ -62,7 +62,7 @@ export function RingChart({
   color,
   size = 64,
   stroke = 7,
-  track = "#eef2f7",
+  track = "var(--muted)",
   children,
 }: RingProps) {
   const r = (size - stroke) / 2

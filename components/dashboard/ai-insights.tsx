@@ -2,9 +2,9 @@ import { ArrowRight, Info, PlayCircle, Sparkles } from "lucide-react"
 import { aiInsights } from "@/lib/dashboard-data"
 
 const tagTone = {
-  growth: "bg-emerald-50 text-emerald-600",
-  timing: "bg-blue-50 text-blue-600",
-  optimization: "bg-violet-50 text-violet-600",
+  growth: "bg-emerald-500/12 text-emerald-300",
+  timing: "bg-blue-500/12 text-blue-300",
+  optimization: "bg-violet-500/12 text-violet-300",
 }
 
 export function AiInsights() {

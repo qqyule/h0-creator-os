@@ -25,7 +25,18 @@ CreatorOS is an English-first content operations system for independent creators
 - [H0 Strategy](./strategy.md): competition strategy, scoring, submission requirements, and credits ambiguity.
 - [Product PRD](./product-prd.md): users, MVP scope, golden path, page requirements, and out-of-scope items.
 - [Technical Architecture](./technical-architecture.md): stack, DynamoDB model, access patterns, API surface, and quality baseline.
+- [DynamoDB Implementation Plan](./dynamodb-plan.md): deeper database design, access patterns, deployment, IAM, and judging evidence.
 - [Delivery Plan](./delivery-plan.md): 10-14 day execution plan, demo script, release checklist, and risk register.
+- [Development Plan](./development-plan.md): implementation sequence from the current scaffold to the MVP golden path.
+- [TODO List](./todolist.md): phase-based checklist for P0, P1, submission, and deferred work.
+- [Development Log](./development-log.md): concise progress log template for implementation sessions.
+
+## Daily Development Workflow
+
+1. Read the PRD, technical architecture, DynamoDB plan, and development plan before code changes.
+2. Use the TODO list as the active implementation checklist.
+3. Record meaningful progress, verification results, risks, and next steps in the development log.
+4. Keep repository docs concise; do not paste long raw planning text or private submission-only details into `docs/`.
 
 ## Source Notes
 

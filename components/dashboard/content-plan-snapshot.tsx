@@ -33,8 +33,8 @@ export function ContentPlanSnapshot() {
                   day.today
                     ? "bg-primary font-semibold text-primary-foreground"
                     : day.muted
-                      ? "text-muted-foreground/40"
-                      : "text-foreground hover:bg-accent/50",
+                      ? "border border-transparent text-muted-foreground/40"
+                      : "border border-border bg-muted/35 text-foreground hover:bg-accent/50",
                 )}
               >
                 <span>{day.day}</span>

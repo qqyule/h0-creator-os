@@ -44,21 +44,24 @@ Never expose AWS, Clerk secret keys, Resend API keys, or AI provider credentials
 
 ## DynamoDB Logical Model
 
+DynamoDB is a core judging surface for CreatorOS. The detailed design, deployment, IAM, and verification plan lives in [DynamoDB Implementation Plan](./dynamodb-plan.md). This section is the high-level model only.
+
 Use a single-table design unless a later requirement proves otherwise. ElectroDB should define the entities, indexes, and access patterns so application code does not hand-build DynamoDB keys in scattered feature code.
 
 | Entity | Example key shape | Notes |
 | --- | --- | --- |
-| PROFILE | `PK=USER#{userId}`, `SK=PROFILE` | account DNA |
-| PLAN | `PK=USER#{userId}`, `SK=PLAN#{yyyy-mm}` | monthly plan summary |
-| POST | `PK=USER#{userId}`, `SK=POST#{yyyy-mm}#{postId}` | calendar and workflow item |
-| PLATFORM_VARIANT | `PK=USER#{userId}`, `SK=VARIANT#{postId}#{platform}` | adapted content |
-| DRAFT | `PK=USER#{userId}`, `SK=DRAFT#{postId}#{platform}#{version}` | generated or edited drafts |
-| METRIC | `PK=USER#{userId}`, `SK=METRIC#{postId}#{publishedAt}` | post performance |
+| PROFILE | `PK=WORKSPACE#{workspaceId}`, `SK=PROFILE` | account DNA |
+| PLAN | `PK=WORKSPACE#{workspaceId}`, `SK=PLAN#{yyyy-mm}` | monthly plan summary |
+| POST | `PK=WORKSPACE#{workspaceId}`, `SK=POST#{postId}` | calendar and workflow item |
+| PLATFORM_VARIANT | `PK=WORKSPACE#{workspaceId}`, `SK=POST#{postId}#VARIANT#{platform}` | adapted content |
+| DRAFT | `PK=WORKSPACE#{workspaceId}`, `SK=POST#{postId}#DRAFT#{platform}#{version}` | generated or edited drafts |
+| METRIC | `PK=WORKSPACE#{workspaceId}`, `SK=POST#{postId}#METRIC#{publishedAt}` | post performance |
+| INSIGHT | `PK=WORKSPACE#{workspaceId}`, `SK=INSIGHT#{yyyy-mm}#{generatedAt}` | next-cycle insight |
 
 Recommended indexes:
 
-- `GSI1`: status board, for `USER#{userId}#STATUS#{status}` sorted by date.
-- `GSI2`: platform view, for `USER#{userId}#PLATFORM#{platform}` sorted by date.
+- `GSI1`: monthly timeline and metrics reads, for `WORKSPACE#{workspaceId}#MONTH#{yyyy-mm}` or `WORKSPACE#{workspaceId}#METRICS#{yyyy-mm}` sorted by date.
+- `GSI2`: workflow and platform reads, for `WORKSPACE#{workspaceId}#STATUS#{status}` or `WORKSPACE#{workspaceId}#PLATFORM#{platform}` sorted by date.
 
 Status updates should use conditional writes with `version` or `updatedAt` to avoid silent overwrite.
 
