@@ -341,11 +341,9 @@ export const recentActivity: {
 ]
 
 export const navItems = [
-  { id: "dashboard", label: "Dashboard", icon: "dashboard" as const, active: true },
-  { id: "calendar", label: "Calendar", icon: "calendar" as const },
-  { id: "ideas", label: "Ideas", icon: "ideas" as const },
-  { id: "workflow", label: "Workflow", icon: "workflow" as const },
-  { id: "analytics", label: "Analytics", icon: "analytics" as const },
-  { id: "templates", label: "Templates", icon: "templates" as const },
-  { id: "settings", label: "Settings", icon: "settings" as const },
+  { id: "dashboard", label: "Dashboard", icon: "dashboard" as const, href: "/dashboard" },
+  { id: "onboarding", label: "Account DNA", icon: "ideas" as const, href: "/onboarding" },
+  { id: "calendar", label: "Calendar", icon: "calendar" as const, href: "/calendar" },
+  { id: "workflow", label: "Post Workflow", icon: "workflow" as const, href: "/post/post-01" },
+  { id: "analytics", label: "Analytics", icon: "analytics" as const, href: "/analytics" },
 ]

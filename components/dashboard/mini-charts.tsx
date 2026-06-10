@@ -105,17 +105,22 @@ export function DonutChart({
   const total = segments.reduce((s, seg) => s + seg.value, 0) || 1
   const r = (size - stroke) / 2
   const c = 2 * Math.PI * r
-  let acc = 0
   const gap = 2 // visual gap in length units
+  const segmentArcs = segments.map((seg, i) => {
+    const previousLength = segments.slice(0, i).reduce((sum, item) => sum + (item.value / total) * c, 0)
+    const len = (seg.value / total) * c
+
+    return {
+      ...seg,
+      dash: `${Math.max(len - gap, 0)} ${c - Math.max(len - gap, 0)}`,
+      offset: -previousLength,
+    }
+  })
 
   return (
     <div className="relative inline-flex items-center justify-center" style={{ width: size, height: size }}>
       <svg width={size} height={size} className="-rotate-90" aria-hidden="true">
-        {segments.map((seg, i) => {
-          const len = (seg.value / total) * c
-          const dash = `${Math.max(len - gap, 0)} ${c - Math.max(len - gap, 0)}`
-          const offset = -acc
-          acc += len
+        {segmentArcs.map((seg, i) => {
           return (
             <circle
               key={i}
@@ -125,8 +130,8 @@ export function DonutChart({
               fill="none"
               stroke={seg.color}
               strokeWidth={stroke}
-              strokeDasharray={dash}
-              strokeDashoffset={offset}
+              strokeDasharray={seg.dash}
+              strokeDashoffset={seg.offset}
             />
           )
         })}

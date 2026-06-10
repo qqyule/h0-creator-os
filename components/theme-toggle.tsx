@@ -30,6 +30,8 @@ export function ThemeToggle() {
     "relative flex h-10 w-10 items-center justify-center rounded-lg border border-border bg-card text-muted-foreground transition-colors hover:bg-accent/40 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/45"
 
   useEffect(() => {
+    // next-themes needs a client-only mounted gate to avoid hydration mismatch.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true)
   }, [])
 
@@ -45,10 +47,10 @@ export function ThemeToggle() {
     return (
       <button
         type="button"
-        aria-label="Theme: System. Click to switch theme."
-        title="Theme: System"
-        className={buttonClassName}
-      >
+      aria-label="Theme: System. Click to switch theme."
+      title="Theme: System"
+      className={buttonClassName}
+    >
         <Monitor className="h-[18px] w-[18px]" />
         <span className="sr-only">Switch theme</span>
       </button>

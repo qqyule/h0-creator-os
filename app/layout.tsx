@@ -1,6 +1,9 @@
 import { Analytics } from '@vercel/analytics/next'
+import { ClerkProvider } from '@clerk/nextjs'
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
+import { NextIntlClientProvider } from 'next-intl'
+import { getLocale, getMessages } from 'next-intl/server'
 import { ThemeProvider } from '@/components/theme-provider'
 import './globals.css'
 
@@ -25,6 +28,9 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const hasClerk = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY)
+  const content = <RootProviders>{children}</RootProviders>
+
   return (
     <html
       lang="en"
@@ -32,11 +38,22 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="font-sans antialiased">
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-          {children}
-          {process.env.NODE_ENV === 'production' && <Analytics />}
-        </ThemeProvider>
+        {hasClerk ? <ClerkProvider>{content}</ClerkProvider> : content}
       </body>
     </html>
+  )
+}
+
+async function RootProviders({ children }: { children: React.ReactNode }) {
+  const locale = await getLocale()
+  const messages = await getMessages()
+
+  return (
+    <NextIntlClientProvider locale={locale} messages={messages}>
+      <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+        {children}
+        {process.env.NODE_ENV === 'production' && <Analytics />}
+      </ThemeProvider>
+    </NextIntlClientProvider>
   )
 }

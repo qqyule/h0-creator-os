@@ -1,3 +1,5 @@
+ "use client"
+
 import {
   BarChart3,
   CalendarDays,
@@ -10,6 +12,8 @@ import {
   Sparkles,
   Workflow,
 } from "lucide-react"
+import Link from "next/link"
+import { usePathname } from "next/navigation"
 import { navItems } from "@/lib/dashboard-data"
 import { cn } from "@/lib/utils"
 
@@ -24,6 +28,8 @@ const iconMap = {
 }
 
 export function Sidebar() {
+  const pathname = usePathname()
+
   return (
     <aside className="flex h-full w-full flex-col gap-6 border-r border-sidebar-border bg-sidebar px-4 py-6">
       {/* Brand */}
@@ -43,21 +49,22 @@ export function Sidebar() {
       <nav className="flex flex-1 flex-col gap-1">
         {navItems.map((item) => {
           const Icon = iconMap[item.icon]
+          const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href)
           return (
-            <a
+            <Link
               key={item.id}
-              href="#"
-              aria-current={item.active ? "page" : undefined}
+              href={item.href}
+              aria-current={active ? "page" : undefined}
               className={cn(
                 "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-                item.active
+                active
                   ? "bg-sidebar-accent text-sidebar-accent-foreground"
                   : "text-muted-foreground hover:bg-sidebar-accent/60 hover:text-foreground",
               )}
             >
               <Icon className="h-[18px] w-[18px]" />
               {item.label}
-            </a>
+            </Link>
           )
         })}
       </nav>
