@@ -34,28 +34,35 @@ async function requestJson(prompt: string) {
     return { ok: false as const, warning: "OpenAI-compatible API is not configured." }
   }
 
-  const response = await fetch(`${config.baseUrl.replace(/\/$/, "")}/chat/completions`, {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-      authorization: `Bearer ${config.apiKey}`,
-    },
-    body: JSON.stringify({
-      model: config.model,
-      response_format: { type: "json_object" },
-      messages: [
-        {
-          role: "system",
-          content:
-            "You are CreatorOS. Return only valid JSON that matches the requested schema. Do not include markdown.",
-        },
-        {
-          role: "user",
-          content: prompt,
-        },
-      ],
-    }),
-  })
+  let response: Response
+
+  try {
+    response = await fetch(`${config.baseUrl.replace(/\/$/, "")}/chat/completions`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        authorization: `Bearer ${config.apiKey}`,
+      },
+      signal: AbortSignal.timeout(20_000),
+      body: JSON.stringify({
+        model: config.model,
+        response_format: { type: "json_object" },
+        messages: [
+          {
+            role: "system",
+            content:
+              "You are CreatorOS. Return only valid JSON that matches the requested schema. Do not include markdown.",
+          },
+          {
+            role: "user",
+            content: prompt,
+          },
+        ],
+      }),
+    })
+  } catch {
+    return { ok: false as const, warning: "AI provider request failed." }
+  }
 
   if (!response.ok) {
     return { ok: false as const, warning: `AI provider returned ${response.status}.` }

@@ -1,10 +1,4 @@
-import {
-  GetCommand,
-  PutCommand,
-  QueryCommand,
-  TransactWriteCommand,
-  UpdateCommand,
-} from "@aws-sdk/lib-dynamodb"
+import { TransactWriteCommand, type TransactWriteCommandInput } from "@aws-sdk/lib-dynamodb"
 import {
   accountDnaSchema,
   dashboardSummarySchema,
@@ -40,23 +34,23 @@ import {
   getDemoPostDetail,
 } from "@/lib/demo-data"
 import { getDocumentClient } from "@/lib/dynamodb/client"
-import { getDynamoConfig } from "@/lib/env"
 import {
-  draftSk,
-  insightSk,
-  metricSk,
-  metricsMonthPk,
-  monthPk,
-  planSk,
-  platformPk,
-  postSk,
-  profileSk,
-  statusPk,
-  variantSk,
-  workspacePk,
-} from "@/lib/repositories/key-builder"
+  ContentService,
+  DraftVersionEntity,
+  InsightEntity,
+  MonthlyPlanEntity,
+  PlatformVariantEntity,
+  PostEntity,
+  PostMetricEntity,
+  ProfileEntity,
+} from "@/lib/dynamodb/entities"
+import { getDynamoConfig } from "@/lib/env"
 
 type RepositoryMode = "demo" | "dynamodb"
+type MonthlyPlanRecord = Omit<MonthlyPlan, "posts">
+type DraftVersionRecord = DraftVersion & { workspaceId: string }
+type PlatformVariantRecord = PlatformVariant & Pick<Post, "workspaceId" | "month" | "scheduledDate">
+type PostMetricRecord = PostMetric & { workspaceId: string; month: string }
 
 export class ContentNotFoundError extends Error {
   code: "PROFILE_NOT_FOUND" | "PLAN_NOT_FOUND" | "POST_NOT_FOUND"
@@ -76,10 +70,6 @@ function dynamoReady() {
   return getDynamoConfig().configured && Boolean(getDocumentClient())
 }
 
-function tableName() {
-  return getDynamoConfig().tableName
-}
-
 function monthFromDate(value: string) {
   return value.slice(0, 7)
 }
@@ -92,16 +82,8 @@ function canUseDemoFallback(workspaceId: string) {
   return !dynamoReady() || workspaceId === DEMO_WORKSPACE_ID
 }
 
-function toDynamoProfile(profile: AccountDna) {
+function toMonthlyPlanRecord(plan: MonthlyPlan): MonthlyPlanRecord {
   return {
-    ...profile,
-    pk: workspacePk(profile.workspaceId),
-    sk: profileSk(),
-  }
-}
-
-function toDynamoPlan(plan: MonthlyPlan) {
-  const planItem = {
     workspaceId: plan.workspaceId,
     month: plan.month,
     title: plan.title,
@@ -110,83 +92,42 @@ function toDynamoPlan(plan: MonthlyPlan) {
     generationStatus: plan.generationStatus,
     updatedAt: plan.updatedAt,
   }
-
-  return {
-    ...planItem,
-    pk: workspacePk(plan.workspaceId),
-    sk: planSk(plan.month),
-    gsi1pk: monthPk(plan.workspaceId, plan.month),
-    gsi1sk: "PLAN",
-  }
 }
 
-function toDynamoPost(post: Post) {
-  return {
-    ...post,
-    pk: workspacePk(post.workspaceId),
-    sk: postSk(post.id),
-    gsi1pk: monthPk(post.workspaceId, post.month),
-    gsi1sk: `DATE#${post.scheduledDate}#POST#${post.id}`,
-    gsi2pk: statusPk(post.workspaceId, post.status),
-    gsi2sk: `DATE#${post.scheduledDate}#POST#${post.id}`,
-  }
+function normalizeMonthlyPlan(workspaceId: string, plan: MonthlyPlan): MonthlyPlan {
+  return monthlyPlanSchema.parse({
+    ...plan,
+    workspaceId,
+    posts: plan.posts.map((post) => ({
+      ...post,
+      workspaceId,
+      month: plan.month,
+    })),
+  })
 }
 
-function toDynamoVariant(variant: PlatformVariant, post: Post) {
+function toVariantRecord(variant: PlatformVariant, post: Post): PlatformVariantRecord {
   return {
     ...variant,
     workspaceId: post.workspaceId,
     month: post.month,
     scheduledDate: post.scheduledDate,
-    pk: workspacePk(post.workspaceId),
-    sk: variantSk(post.id, variant.platform),
-    gsi2pk: platformPk(post.workspaceId, variant.platform),
-    gsi2sk: `DATE#${post.scheduledDate}#POST#${post.id}`,
   }
 }
 
-function toDynamoDraft(draft: DraftVersion, workspaceId: string) {
+function toDraftRecord(draft: DraftVersion, workspaceId: string): DraftVersionRecord {
   return {
     ...draft,
     workspaceId,
-    pk: workspacePk(workspaceId),
-    sk: draftSk(draft.postId, draft.platform, draft.version),
   }
 }
 
-function toDynamoMetric(metric: PostMetric, workspaceId: string) {
-  const month = monthFromDate(metric.publishedAt)
-
+function toMetricRecord(metric: PostMetric, workspaceId: string): PostMetricRecord {
   return {
     ...metric,
     workspaceId,
-    month,
-    pk: workspacePk(workspaceId),
-    sk: metricSk(metric.postId, metric.publishedAt),
-    gsi1pk: metricsMonthPk(workspaceId, month),
-    gsi1sk: `DATE#${metric.publishedAt}#POST#${metric.postId}`,
+    month: monthFromDate(metric.publishedAt),
   }
-}
-
-function toDynamoInsight(insight: Insight) {
-  return {
-    ...insight,
-    pk: workspacePk(insight.workspaceId),
-    sk: insightSk(insight.month, insight.generatedAt),
-    gsi1pk: monthPk(insight.workspaceId, insight.month),
-    gsi1sk: `INSIGHT#${insight.generatedAt}`,
-  }
-}
-
-function stripKeys<T extends Record<string, unknown>>(item: T) {
-  const rest = { ...item }
-  delete rest.pk
-  delete rest.sk
-  delete rest.gsi1pk
-  delete rest.gsi1sk
-  delete rest.gsi2pk
-  delete rest.gsi2sk
-  return rest
 }
 
 function getDemoPlanForWorkspace(workspaceId: string, month = DEMO_MONTH): MonthlyPlan {
@@ -236,19 +177,13 @@ export async function getProfile(workspaceId: string): Promise<AccountDna> {
     return getDemoProfileForWorkspace(workspaceId)
   }
 
-  const client = getDocumentClient()
-  const result = await client?.send(
-    new GetCommand({
-      TableName: tableName(),
-      Key: { pk: workspacePk(workspaceId), sk: profileSk() },
-    }),
-  )
+  const result = await ProfileEntity.get({ workspaceId }).go()
 
-  if (!result?.Item) {
+  if (!result.data) {
     throw new ContentNotFoundError("PROFILE_NOT_FOUND", "Profile could not be found.")
   }
 
-  return accountDnaSchema.parse(stripKeys(result.Item))
+  return accountDnaSchema.parse(result.data)
 }
 
 export async function saveProfile(workspaceId: string, profile: Omit<AccountDna, "workspaceId" | "updatedAt">) {
@@ -262,14 +197,28 @@ export async function saveProfile(workspaceId: string, profile: Omit<AccountDna,
     return { profile: saved, mode: "demo" as const }
   }
 
-  await getDocumentClient()?.send(
-    new PutCommand({
-      TableName: tableName(),
-      Item: toDynamoProfile(saved),
-    }),
-  )
+  await ProfileEntity.put(saved).go()
 
   return { profile: saved, mode: "dynamodb" as const }
+}
+
+export async function saveMonthlyPlan(workspaceId: string, plan: MonthlyPlan) {
+  const saved = normalizeMonthlyPlan(workspaceId, plan)
+
+  if (!dynamoReady()) {
+    return { plan: saved, mode: "demo" as const, postCount: saved.posts.length }
+  }
+
+  const params = ContentService.transaction
+    .write(({ monthlyPlan, post }) => [
+      monthlyPlan.put(toMonthlyPlanRecord(saved)).commit(),
+      ...saved.posts.map((item) => post.put(item).commit()),
+    ])
+    .params() as unknown as TransactWriteCommandInput
+
+  await getDocumentClient()?.send(new TransactWriteCommand(params))
+
+  return { plan: saved, mode: "dynamodb" as const, postCount: saved.posts.length }
 }
 
 export async function getMonthlyPlan(workspaceId: string, month = DEMO_MONTH): Promise<MonthlyPlan> {
@@ -277,36 +226,20 @@ export async function getMonthlyPlan(workspaceId: string, month = DEMO_MONTH): P
     return getDemoPlanForWorkspace(workspaceId, month)
   }
 
-  const client = getDocumentClient()
   const [planResult, postsResult] = await Promise.all([
-    client?.send(
-      new GetCommand({
-        TableName: tableName(),
-        Key: { pk: workspacePk(workspaceId), sk: planSk(month) },
-      }),
-    ),
-    client?.send(
-      new QueryCommand({
-        TableName: tableName(),
-        IndexName: "gsi1",
-        KeyConditionExpression: "gsi1pk = :pk AND begins_with(gsi1sk, :prefix)",
-        ExpressionAttributeValues: {
-          ":pk": monthPk(workspaceId, month),
-          ":prefix": "DATE#",
-        },
-      }),
-    ),
+    MonthlyPlanEntity.get({ workspaceId, month }).go(),
+    PostEntity.query.byMonth({ workspaceId, month }).go(),
   ])
 
-  if (!planResult?.Item || !postsResult?.Items?.length) {
+  if (!planResult.data || !postsResult.data.length) {
     throw new ContentNotFoundError("PLAN_NOT_FOUND", "Monthly plan could not be found.")
   }
 
-  const posts = postsResult.Items.map((item) => postSchema.parse(stripKeys(item))).sort((a, b) =>
-    a.scheduledDate.localeCompare(b.scheduledDate),
-  )
+  const posts = postsResult.data
+    .map((item) => postSchema.parse(item))
+    .sort((a, b) => a.scheduledDate.localeCompare(b.scheduledDate))
   const plan = monthlyPlanSchema.parse({
-    ...stripKeys(planResult.Item),
+    ...planResult.data,
     posts,
   })
 
@@ -323,35 +256,23 @@ export async function getPostDetail(workspaceId: string, postId: string): Promis
     return getDemoPostDetailForWorkspace(workspaceId, postId)
   }
 
-  const client = getDocumentClient()
-  const result = await client?.send(
-    new QueryCommand({
-      TableName: tableName(),
-      KeyConditionExpression: "pk = :pk AND begins_with(sk, :prefix)",
-      ExpressionAttributeValues: {
-        ":pk": workspacePk(workspaceId),
-        ":prefix": `POST#${postId}`,
-      },
-    }),
-  )
+  const [postResult, variantsResult, metricsResult, draftsResult] = await Promise.all([
+    PostEntity.get({ workspaceId, id: postId }).go(),
+    PlatformVariantEntity.query.variant({ workspaceId }).begins({ postId }).go(),
+    PostMetricEntity.query.metric({ workspaceId }).begins({ postId }).go(),
+    DraftVersionEntity.query.draft({ workspaceId }).begins({ postId }).go(),
+  ])
 
-  const items = result?.Items ?? []
-  const postItem = items.find((item) => item.sk === postSk(postId))
-
-  if (!postItem) {
+  if (!postResult.data) {
     throw new ContentNotFoundError("POST_NOT_FOUND", "Post could not be found.")
   }
 
-  const post = postSchema.parse(stripKeys(postItem))
-  const variants = items
-    .filter((item) => typeof item.sk === "string" && item.sk.includes("#VARIANT#"))
-    .map((item) => platformVariantSchema.parse(stripKeys(item)))
-  const metrics = items
-    .filter((item) => typeof item.sk === "string" && item.sk.includes("#METRIC#"))
-    .map((item) => postMetricSchema.parse(stripKeys(item)))
-  const drafts = items
-    .filter((item) => typeof item.sk === "string" && item.sk.includes("#DRAFT#"))
-    .map((item) => draftVersionSchema.parse(stripKeys(item)))
+  const post = postSchema.parse(postResult.data)
+  const variants = variantsResult.data.map((item) => platformVariantSchema.parse(item))
+  const metrics = metricsResult.data.map((item) => postMetricSchema.parse(item))
+  const drafts = draftsResult.data
+    .map((item) => draftVersionSchema.parse(item))
+    .sort((a, b) => a.version - b.version)
 
   return postDetailSchema.parse({ post, variants, metrics, drafts })
 }
@@ -386,32 +307,25 @@ export async function getDashboardSummary(workspaceId: string, month = DEMO_MONT
 
 export async function saveVariant(workspaceId: string, postId: string, variant: PlatformVariant) {
   const detail = await getPostDetail(workspaceId, postId)
+  const saved = toVariantRecord(variant, detail.post)
 
   if (!dynamoReady()) {
     return { variant, mode: "demo" as const }
   }
 
-  await getDocumentClient()?.send(
-    new PutCommand({
-      TableName: tableName(),
-      Item: toDynamoVariant(variant, detail.post),
-    }),
-  )
+  await PlatformVariantEntity.put(saved).go()
 
   return { variant, mode: "dynamodb" as const }
 }
 
 export async function saveDraft(workspaceId: string, draft: DraftVersion) {
+  const saved = toDraftRecord(draft, workspaceId)
+
   if (!dynamoReady()) {
     return { draft, mode: "demo" as const }
   }
 
-  await getDocumentClient()?.send(
-    new PutCommand({
-      TableName: tableName(),
-      Item: toDynamoDraft(draft, workspaceId),
-    }),
-  )
+  await DraftVersionEntity.put(saved).go()
 
   return { draft, mode: "dynamodb" as const }
 }
@@ -459,27 +373,14 @@ export async function updatePostStatus(
   }
 
   try {
-    await getDocumentClient()?.send(
-      new UpdateCommand({
-        TableName: tableName(),
-        Key: { pk: workspacePk(workspaceId), sk: postSk(postId) },
-        UpdateExpression:
-          "SET #status = :status, #version = :nextVersion, #updatedAt = :updatedAt, gsi2pk = :gsi2pk",
-        ConditionExpression: "#version = :expectedVersion",
-        ExpressionAttributeNames: {
-          "#status": "status",
-          "#version": "version",
-          "#updatedAt": "updatedAt",
-        },
-        ExpressionAttributeValues: {
-          ":status": status,
-          ":nextVersion": nextPost.version,
-          ":expectedVersion": expectedVersion ?? detail.post.version,
-          ":updatedAt": nextPost.updatedAt,
-          ":gsi2pk": statusPk(workspaceId, status),
-        },
-      }),
-    )
+    await PostEntity.update({ workspaceId, id: postId })
+      .set({
+        status,
+        version: nextPost.version,
+        updatedAt: nextPost.updatedAt,
+      })
+      .where(({ version }, { eq }) => eq(version, expectedVersion ?? detail.post.version))
+      .go()
   } catch {
     return {
       ok: false,
@@ -493,16 +394,13 @@ export async function updatePostStatus(
 }
 
 export async function saveMetric(workspaceId: string, metric: PostMetric) {
+  const saved = toMetricRecord(metric, workspaceId)
+
   if (!dynamoReady()) {
     return { metric, mode: "demo" as const }
   }
 
-  await getDocumentClient()?.send(
-    new PutCommand({
-      TableName: tableName(),
-      Item: toDynamoMetric(metric, workspaceId),
-    }),
-  )
+  await PostMetricEntity.put(saved).go()
 
   return { metric, mode: "dynamodb" as const }
 }
@@ -512,18 +410,9 @@ export async function listMetrics(workspaceId: string, month = DEMO_MONTH): Prom
     return clone(demoMetrics)
   }
 
-  const result = await getDocumentClient()?.send(
-    new QueryCommand({
-      TableName: tableName(),
-      IndexName: "gsi1",
-      KeyConditionExpression: "gsi1pk = :pk",
-      ExpressionAttributeValues: {
-        ":pk": metricsMonthPk(workspaceId, month),
-      },
-    }),
-  )
+  const result = await PostMetricEntity.query.byMetricsMonth({ workspaceId, month }).go()
 
-  return (result?.Items ?? []).map((item) => postMetricSchema.parse(stripKeys(item)))
+  return result.data.map((item) => postMetricSchema.parse(item))
 }
 
 export async function listInsights(workspaceId: string, month = DEMO_MONTH): Promise<Insight[]> {
@@ -531,19 +420,9 @@ export async function listInsights(workspaceId: string, month = DEMO_MONTH): Pro
     return getDemoInsightsForWorkspace(workspaceId, month)
   }
 
-  const result = await getDocumentClient()?.send(
-    new QueryCommand({
-      TableName: tableName(),
-      IndexName: "gsi1",
-      KeyConditionExpression: "gsi1pk = :pk AND begins_with(gsi1sk, :prefix)",
-      ExpressionAttributeValues: {
-        ":pk": monthPk(workspaceId, month),
-        ":prefix": "INSIGHT#",
-      },
-    }),
-  )
+  const result = await InsightEntity.query.byMonth({ workspaceId, month }).go()
 
-  return (result?.Items ?? []).map((item) => insightSchema.parse(stripKeys(item)))
+  return result.data.map((item) => insightSchema.parse(item))
 }
 
 export async function saveInsight(workspaceId: string, insight: Insight) {
@@ -553,12 +432,7 @@ export async function saveInsight(workspaceId: string, insight: Insight) {
     return { insight: saved, mode: "demo" as const }
   }
 
-  await getDocumentClient()?.send(
-    new PutCommand({
-      TableName: tableName(),
-      Item: toDynamoInsight(saved),
-    }),
-  )
+  await InsightEntity.put(saved).go()
 
   return { insight: saved, mode: "dynamodb" as const }
 }
@@ -574,32 +448,34 @@ export async function seedDemoWorkspace() {
   const drafts = demoDrafts
   const metrics = demoMetrics
   const insights = getDemoInsightsForWorkspace(DEMO_WORKSPACE_ID, DEMO_MONTH)
-  const writes = [
-    toDynamoProfile(profile),
-    toDynamoPlan(plan),
-    ...plan.posts.map(toDynamoPost),
-    ...variants.map((variant) => {
-      const post = plan.posts.find((item) => item.id === variant.postId) ?? plan.posts[0]
-      return toDynamoVariant(variant, post)
-    }),
-    ...drafts.map((draft) => toDynamoDraft(draft, DEMO_WORKSPACE_ID)),
-    ...metrics.map((metric) => toDynamoMetric(metric, DEMO_WORKSPACE_ID)),
-    ...insights.map(toDynamoInsight),
-  ]
+  let count = 0
 
-  for (let index = 0; index < writes.length; index += 25) {
-    const batch = writes.slice(index, index + 25)
-    await getDocumentClient()?.send(
-      new TransactWriteCommand({
-        TransactItems: batch.map((item) => ({
-          Put: {
-            TableName: tableName(),
-            Item: item,
-          },
-        })),
-      }),
-    )
+  await ProfileEntity.put(profile).go()
+  count += 1
+
+  const savedPlan = await saveMonthlyPlan(DEMO_WORKSPACE_ID, plan)
+  count += 1 + savedPlan.postCount
+
+  for (const variant of variants) {
+    const post = plan.posts.find((item) => item.id === variant.postId) ?? plan.posts[0]
+    await PlatformVariantEntity.put(toVariantRecord(variant, post)).go()
+    count += 1
   }
 
-  return { seeded: true, mode: "dynamodb" as const, count: writes.length }
+  for (const draft of drafts) {
+    await DraftVersionEntity.put(toDraftRecord(draft, DEMO_WORKSPACE_ID)).go()
+    count += 1
+  }
+
+  for (const metric of metrics) {
+    await PostMetricEntity.put(toMetricRecord(metric, DEMO_WORKSPACE_ID)).go()
+    count += 1
+  }
+
+  for (const insight of insights) {
+    await InsightEntity.put(insight).go()
+    count += 1
+  }
+
+  return { seeded: true, mode: "dynamodb" as const, count }
 }

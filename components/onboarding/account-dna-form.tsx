@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useTransition } from "react"
+import { useRouter } from "next/navigation"
 import { AlertCircle, CheckCircle2, Loader2, Save } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import type { AccountDna, PlatformId } from "@/lib/domain"
@@ -13,6 +14,7 @@ const platformOptions: { value: PlatformId; label: string }[] = [
 ]
 
 export function AccountDnaForm({ profile }: { profile: AccountDna }) {
+  const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [message, setMessage] = useState<{ tone: "success" | "error"; text: string } | null>(null)
   const [selectedPlatforms, setSelectedPlatforms] = useState<PlatformId[]>(profile.platforms)
@@ -26,40 +28,57 @@ export function AccountDnaForm({ profile }: { profile: AccountDna }) {
   function onSubmit(formData: FormData) {
     setMessage(null)
     startTransition(async () => {
-      const payload = {
-        niche: String(formData.get("niche") ?? ""),
-        audience: String(formData.get("audience") ?? ""),
-        cadence: String(formData.get("cadence") ?? ""),
-        tone: String(formData.get("tone") ?? ""),
-        goals: String(formData.get("goals") ?? ""),
-        platforms: selectedPlatforms,
-      }
+      try {
+        const payload = {
+          niche: String(formData.get("niche") ?? ""),
+          audience: String(formData.get("audience") ?? ""),
+          cadence: String(formData.get("cadence") ?? ""),
+          tone: String(formData.get("tone") ?? ""),
+          goals: String(formData.get("goals") ?? ""),
+          platforms: selectedPlatforms,
+        }
 
-      if (!selectedPlatforms.length) {
-        setMessage({ tone: "error", text: "Select at least one platform." })
-        return
-      }
+        if (!selectedPlatforms.length) {
+          setMessage({ tone: "error", text: "Select at least one platform." })
+          return
+        }
 
-      const response = await fetch("/api/v1/profile", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify(payload),
-      })
-      const result = (await response.json()) as {
-        ok: boolean
-        data?: { warning?: string }
-        error?: { message: string }
-      }
+        const profileResponse = await fetch("/api/v1/profile", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify(payload),
+        })
+        const profileResult = (await profileResponse.json()) as ApiResult<{ warning?: string }>
 
-      if (!result.ok) {
-        setMessage({ tone: "error", text: result.error?.message ?? "Account DNA could not be saved." })
-        return
-      }
+        if (!profileResult.ok) {
+          setMessage({ tone: "error", text: profileResult.error?.message ?? "Account DNA could not be saved." })
+          return
+        }
 
-      setMessage({
-        tone: "success",
-        text: result.data?.warning ?? "Account DNA saved through the server boundary.",
-      })
+        setMessage({
+          tone: "success",
+          text: profileResult.data?.warning ?? "Account DNA saved. Generating the 30-day plan...",
+        })
+
+        const planResponse = await fetch("/api/v1/plans/generate", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({}),
+        })
+        const planResult = (await planResponse.json()) as ApiResult<{
+          saved?: { postCount: number }
+          warning?: string
+        }>
+
+        if (!planResult.ok) {
+          setMessage({ tone: "error", text: planResult.error?.message ?? "Monthly plan could not be generated." })
+          return
+        }
+
+        router.push("/calendar")
+      } catch {
+        setMessage({ tone: "error", text: "Onboarding could not be completed. Try again." })
+      }
     })
   }
 
@@ -136,11 +155,17 @@ export function AccountDnaForm({ profile }: { profile: AccountDna }) {
       <div className="mt-5 flex justify-end">
         <Button type="submit" disabled={isPending || selectedPlatforms.length === 0} size="lg">
           {isPending ? <Loader2 className="animate-spin" data-icon="inline-start" /> : <Save data-icon="inline-start" />}
-          Save Account DNA
+          {isPending ? "Saving and generating..." : "Save Account DNA"}
         </Button>
       </div>
     </form>
   )
+}
+
+type ApiResult<T> = {
+  ok: boolean
+  data?: T
+  error?: { message: string }
 }
 
 function Field({

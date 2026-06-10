@@ -1,4 +1,4 @@
-import { Entity } from "electrodb"
+import { Entity, Service } from "electrodb"
 import { getDocumentClient } from "@/lib/dynamodb/client"
 import { getDynamoConfig } from "@/lib/env"
 
@@ -299,6 +299,19 @@ export const InsightEntity = new Entity(
         },
       },
     },
+  },
+  { client, table },
+)
+
+export const ContentService = new Service(
+  {
+    profile: ProfileEntity,
+    monthlyPlan: MonthlyPlanEntity,
+    post: PostEntity,
+    platformVariant: PlatformVariantEntity,
+    draftVersion: DraftVersionEntity,
+    postMetric: PostMetricEntity,
+    insight: InsightEntity,
   },
   { client, table },
 )

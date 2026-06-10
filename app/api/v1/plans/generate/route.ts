@@ -2,7 +2,7 @@ import { fail, ok } from "@/lib/api/response"
 import { DEMO_MONTH } from "@/lib/demo-data"
 import type { AccountDna } from "@/lib/domain"
 import { generateMonthlyPlan } from "@/lib/services/ai-service"
-import { ContentNotFoundError, getProfile } from "@/lib/repositories/content-repository"
+import { ContentNotFoundError, getProfile, saveMonthlyPlan } from "@/lib/repositories/content-repository"
 import { resolveWorkspace } from "@/lib/workspace"
 
 export async function POST(request: Request) {
@@ -20,6 +20,7 @@ export async function POST(request: Request) {
     throw error
   }
   const result = await generateMonthlyPlan(profile, month)
+  const saved = await saveMonthlyPlan(workspace.workspaceId, result.data)
 
-  return ok({ ...result, workspace })
+  return ok({ ...result, saved, workspace })
 }
