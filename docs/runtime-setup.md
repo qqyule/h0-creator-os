@@ -18,6 +18,7 @@ Required for authenticated or persisted runtime:
 - Resend: `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, `RESEND_TEST_RECIPIENT`
 - OpenAI-compatible generation: `OPENAI_API_KEY`, optional `OPENAI_BASE_URL`, optional `OPENAI_MODEL`
 - AI settings page secret storage: `AI_CONFIG_ENCRYPTION_KEY`
+- Optional YouTube live metrics sync: `GOOGLE_PUBLIC_API_KEY`
 
 When these are missing, the app keeps the judge path usable through deterministic `DEMO#judge` fallback data.
 
@@ -28,6 +29,8 @@ The UI uses `next-intl` with `en-US` as the default locale and `zh-CN` as the se
 `CREATOROS_ADMIN_CLERK_USER_IDS` is a comma-separated allowlist of Clerk user IDs that can call AI settings, S3 presign, and Resend smoke endpoints. If it is missing, those admin endpoints return `403`.
 
 The AI settings page stores encrypted provider settings in DynamoDB through the `AiSettings` ElectroDB entity. Saving settings requires DynamoDB configuration; reading settings falls back to `OPENAI_*` environment variables when no saved config exists.
+
+YouTube live metrics sync uses the public YouTube Data API v3 `videos.list` endpoint from a server route. If `GOOGLE_PUBLIC_API_KEY` is missing or the API call fails, the post detail page keeps manual metric entry available.
 
 ## DynamoDB Table
 
@@ -73,6 +76,7 @@ After resource configuration, verify:
 - `POST /api/v1/posts/post-01/rewrite`
 - `PATCH /api/v1/posts/post-01/status`
 - `POST /api/v1/metrics/import`
+- `PATCH /api/v1/posts/post-01/sync` with `{"externalId":"GpQSUjNsNm0"}` or `{"externalId":"S5xNFmAR2xk"}` when `GOOGLE_PUBLIC_API_KEY` is configured
 - `POST /api/v1/analytics/insights`
 - `POST /api/v1/assets/presign` with an admin Clerk session
 - `POST /api/v1/notifications/test` with an admin Clerk session

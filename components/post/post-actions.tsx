@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import { AlertCircle, CheckCircle2, Loader2, PenLine, Save, Sparkles } from "lucide-react"
+import { AlertCircle, CheckCircle2, Loader2, PenLine, RefreshCw, Save, Sparkles } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { PlatformPill } from "@/components/app/platform-pill"
 import { StatusBadge } from "@/components/app/status-badge"
@@ -194,7 +194,44 @@ export function MetricEntryPanel({ post, initialMetrics }: { post: Post; initial
   const t = useTranslations("postActions.metrics")
   const [metrics, setMetrics] = useState(initialMetrics)
   const [message, setMessage] = useState<string | null>(null)
+  const [syncMessage, setSyncMessage] = useState<{ tone: "success" | "error"; text: string } | null>(null)
+  const [externalId, setExternalId] = useState(post.externalId ?? "")
+  const [publishedUrl, setPublishedUrl] = useState(post.publishedUrl ?? "")
   const [isPending, startTransition] = useTransition()
+  const [isSyncPending, startSyncTransition] = useTransition()
+
+  function syncLiveStats(formData: FormData) {
+    setSyncMessage(null)
+    startSyncTransition(async () => {
+      const payload = {
+        externalId: String(formData.get("externalId") ?? "").trim(),
+        publishedUrl: String(formData.get("publishedUrl") ?? "").trim() || undefined,
+      }
+      const response = await fetch(`/api/v1/posts/${post.id}/sync`, {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(payload),
+      })
+      const result = (await response.json()) as ApiResult<{
+        metric: PostMetric
+        post: Post
+        externalId: string
+        publishedUrl?: string
+        mode: string
+        source: "youtube"
+      }>
+
+      if (!result.ok || !result.data) {
+        setSyncMessage({ tone: "error", text: result.error?.message ?? t("sync.errors.failed") })
+        return
+      }
+
+      setMetrics((current) => [result.data!.metric, ...current])
+      setExternalId(result.data.externalId)
+      setPublishedUrl(result.data.publishedUrl ?? "")
+      setSyncMessage({ tone: "success", text: t("sync.messages.synced", { mode: result.data.mode }) })
+    })
+  }
 
   function onSubmit(formData: FormData) {
     setMessage(null)
@@ -228,7 +265,74 @@ export function MetricEntryPanel({ post, initialMetrics }: { post: Post; initial
   return (
     <section className="rounded-2xl border border-border bg-card p-5 shadow-sm">
       <h2 className="text-base font-semibold text-foreground">{t("title")}</h2>
+      <form action={syncLiveStats} className="mt-4 grid gap-3 rounded-xl border border-border bg-background p-4">
+        <div>
+          <h3 className="text-sm font-semibold text-foreground">{t("sync.title")}</h3>
+          <p className="mt-1 text-sm leading-6 text-muted-foreground">{t("sync.description")}</p>
+        </div>
+        <div>
+          <label className="text-sm font-medium text-foreground">
+            {t("sync.fields.externalId")}
+            <input
+              name="externalId"
+              type="text"
+              value={externalId}
+              onChange={(event) => setExternalId(event.target.value)}
+              placeholder="GpQSUjNsNm0 or S5xNFmAR2xk"
+              className="mt-2 h-10 w-full rounded-lg border border-border bg-card px-3 text-sm outline-none focus:border-ring focus:ring-3 focus:ring-ring/20"
+            />
+          </label>
+          <div className="mt-3 rounded-xl border border-amber-300 bg-amber-100 p-3 dark:border-amber-400/40 dark:bg-amber-400/15">
+            <p className="text-xs font-semibold uppercase tracking-wide text-amber-900 dark:text-amber-100">
+              {t("sync.examplesLabel")}
+            </p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {["GpQSUjNsNm0", "S5xNFmAR2xk"].map((exampleId) => (
+                <button
+                  key={exampleId}
+                  type="button"
+                  onClick={() => setExternalId(exampleId)}
+                  className="rounded-lg border border-amber-500 bg-amber-400 px-3 py-2 font-mono text-sm font-semibold text-amber-950 shadow-sm transition hover:bg-amber-300 focus:outline-none focus:ring-3 focus:ring-amber-500/40"
+                >
+                  {exampleId}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+        <label className="text-sm font-medium text-foreground">
+          {t("sync.fields.publishedUrl")}
+          <input
+            name="publishedUrl"
+            type="url"
+            value={publishedUrl}
+            onChange={(event) => setPublishedUrl(event.target.value)}
+            placeholder="https://www.youtube.com/watch?v=GpQSUjNsNm0"
+            className="mt-2 h-10 w-full rounded-lg border border-border bg-card px-3 text-sm outline-none focus:border-ring focus:ring-3 focus:ring-ring/20"
+          />
+        </label>
+        <Button type="submit" variant="outline" disabled={isSyncPending}>
+          {isSyncPending ? <Loader2 className="animate-spin" data-icon="inline-start" /> : <RefreshCw data-icon="inline-start" />}
+          {t("sync.button")}
+        </Button>
+      </form>
+      {syncMessage ? (
+        <div
+          role={syncMessage.tone === "success" ? "status" : "alert"}
+          className={`mt-3 flex items-start gap-2 rounded-xl border p-3 text-sm ${
+            syncMessage.tone === "success"
+              ? "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-400/30 dark:bg-emerald-400/10 dark:text-emerald-200"
+              : "border-destructive/30 bg-destructive/10 text-destructive"
+          }`}
+        >
+          {syncMessage.tone === "success" ? <CheckCircle2 className="mt-0.5 h-4 w-4" /> : <AlertCircle className="mt-0.5 h-4 w-4" />}
+          <span>{syncMessage.text}</span>
+        </div>
+      ) : null}
       <form action={onSubmit} className="mt-4 grid gap-3">
+        <div className="border-t border-border pt-4">
+          <h3 className="text-sm font-semibold text-foreground">{t("manualTitle")}</h3>
+        </div>
         <div className="grid grid-cols-2 gap-3">
           <NumberField name="views" label={t("fields.views")} defaultValue={5200} />
           <NumberField name="likes" label={t("fields.likes")} defaultValue={260} />
@@ -246,7 +350,12 @@ export function MetricEntryPanel({ post, initialMetrics }: { post: Post; initial
         {metrics.length ? (
           metrics.slice(0, 3).map((metric) => (
             <div key={`${metric.postId}-${metric.publishedAt}`} className="rounded-lg border border-border bg-background p-3 text-sm">
-              <span className="font-medium text-foreground">{t("metricSummary.views", { views: metric.views.toLocaleString() })}</span>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="font-medium text-foreground">{t("metricSummary.views", { views: metric.views.toLocaleString() })}</span>
+                {metric.source === "youtube" ? (
+                  <span className="rounded-md bg-primary/10 px-2 py-1 text-xs font-medium text-primary">{t("liveSynced")}</span>
+                ) : null}
+              </div>
               <span className="text-muted-foreground"> · {t("metricSummary.likes", { likes: metric.likes })} · {t("metricSummary.saves", { saves: metric.saves })}</span>
             </div>
           ))

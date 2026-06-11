@@ -194,8 +194,26 @@
       }
     },
     "metrics": {
-      "title": "手动指标",
+      "title": "内容指标",
+      "manualTitle": "手动录入",
       "save": "保存指标",
+      "liveSynced": "实时同步",
+      "sync": {
+        "title": "同步实时数据",
+        "description": "粘贴公开视频的 YouTube video ID，无需 OAuth 即可拉取浏览、点赞和评论。可试用 GpQSUjNsNm0 或 S5xNFmAR2xk。",
+        "button": "同步实时数据",
+        "examplesLabel": "点击案例自动填入",
+        "fields": {
+          "externalId": "YouTube video ID",
+          "publishedUrl": "发布链接（可选）"
+        },
+        "messages": {
+          "synced": "YouTube 实时数据已保存到 {mode} 模式。"
+        },
+        "errors": {
+          "failed": "实时数据同步失败。"
+        }
+      },
       "fields": {
         "views": "浏览量",
         "likes": "点赞",

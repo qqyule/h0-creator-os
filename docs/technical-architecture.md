@@ -26,6 +26,7 @@ The current repository is a dashboard scaffold. Runtime architecture should be a
 | Object storage | Amazon S3 with AWS SDK for JavaScript v3 | uploads, imports, exports, and generated artifacts through modular `@aws-sdk/client-s3` APIs |
 | Email | Resend | transactional email notifications from server-side code |
 | AI orchestration | Vercel AI SDK or direct provider wrapper | structured generation and streaming-friendly UX |
+| Public metrics sync | YouTube Data API v3 with server-side API key | optional no-auth video stats feedback loop |
 | Validation | Zod | validate AI output before persistence |
 | Testing | Vitest and Playwright when added | unit coverage plus demo-path smoke tests |
 | Observability | Vercel logs/observability | judge-period stability and debuggability |
@@ -41,6 +42,12 @@ Browser UI -> server route/action -> AI service -> schema validation -> reposito
 File operations should use server-side S3 SDK code or short-lived presigned URLs. Email notifications should go through server-side Resend services.
 
 Never expose AWS, Clerk secret keys, Resend API keys, or AI provider credentials to Client Components.
+
+Optional YouTube metrics sync runs server-side only:
+
+Browser UI -> `/api/v1/posts/:id/sync` -> YouTube Data API v3 `videos.list` -> repository `saveMetric()` -> DynamoDB.
+
+The Google public API key stays in server environment variables and is never sent to the browser.
 
 ## DynamoDB Logical Model
 
@@ -88,6 +95,7 @@ Keep the MVP API small:
 | `/api/v1/posts/:id/draft` | `POST` | generate draft |
 | `/api/v1/posts/:id/status` | `PATCH` | change workflow status |
 | `/api/v1/metrics/import` | `POST` | import or enter metrics |
+| `/api/v1/posts/:id/sync` | `PATCH` | sync public YouTube video stats into metrics |
 | `/api/v1/analytics/insights` | `GET` | read generated insights |
 | `/api/v1/assets/presign` | `POST` | create scoped S3 upload/download URLs when needed |
 | `/api/v1/notifications/test` | `POST` | server-only smoke path for Resend integration in non-production or admin/demo contexts |

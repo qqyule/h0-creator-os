@@ -13,6 +13,7 @@ CreatorOS is an English-first content operations system for independent creators
 - Object storage: Amazon S3 through AWS SDK for JavaScript v3.
 - Authentication: Clerk.
 - Email notifications: Resend.
+- Optional public metrics sync: YouTube Data API v3 with a server-side Google public API key.
 - i18n implementation: next-intl.
 - UI system: shadcn/ui as the primary component layer, styled with the existing Tailwind setup.
 - Frontend and hosting: Next.js on Vercel, using the existing dashboard scaffold as the starting point.

@@ -42,3 +42,12 @@ export function getResendConfig() {
     testRecipient: getOptionalEnv("RESEND_TEST_RECIPIENT"),
   }
 }
+
+export function getYoutubeConfig() {
+  const apiKey = getOptionalEnv("GOOGLE_PUBLIC_API_KEY")
+
+  return {
+    configured: Boolean(apiKey),
+    apiKey,
+  }
+}

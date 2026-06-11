@@ -57,6 +57,7 @@ export const ProfileEntity = new Entity(
       cadence: { type: "string", required: true },
       tone: { type: "string", required: true },
       goals: { type: "list", items: { type: "string" }, required: true },
+      youtubeChannelId: { type: "string" },
       updatedAt: { type: "string", required: true },
     },
     indexes: {
@@ -125,6 +126,8 @@ export const PostEntity = new Entity(
       status: { type: "string", required: true },
       primaryPlatform: { type: "string", required: true },
       platforms: { type: "list", items: { type: "string" }, required: true },
+      externalId: { type: "string" },
+      publishedUrl: { type: "string" },
       version: { type: "number", required: true },
       updatedAt: { type: "string", required: true },
     },
@@ -240,6 +243,7 @@ export const PostMetricEntity = new Entity(
       comments: { type: "number", required: true },
       saves: { type: "number", required: true },
       followersGained: { type: "number", required: true },
+      source: { type: "string" },
     },
     indexes: {
       metric: {

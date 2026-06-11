@@ -133,6 +133,7 @@ export const demoMetrics: PostMetric[] = demoPosts
     comments: 24 + index * 5,
     saves: 48 + index * 7,
     followersGained: 8 + index * 3,
+    source: "manual",
   }))
 
 export const demoInsights: Insight[] = [

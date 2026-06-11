@@ -25,9 +25,13 @@ export const accountDnaSchema = z.object({
   cadence: z.string().min(2).max(120),
   tone: z.string().min(2).max(160),
   goals: z.array(z.string().min(2).max(160)).min(1).max(6),
+  youtubeChannelId: z.string().min(2).max(120).optional(),
   updatedAt: z.string().datetime(),
 })
 export type AccountDna = z.infer<typeof accountDnaSchema>
+
+export const postMetricSourceSchema = z.enum(["manual", "youtube"])
+export type PostMetricSource = z.infer<typeof postMetricSourceSchema>
 
 export const postMetricSchema = z.object({
   postId: z.string().min(1),
@@ -38,6 +42,7 @@ export const postMetricSchema = z.object({
   comments: z.number().int().nonnegative(),
   saves: z.number().int().nonnegative(),
   followersGained: z.number().int().nonnegative(),
+  source: postMetricSourceSchema.default("manual"),
 })
 export type PostMetric = z.infer<typeof postMetricSchema>
 
@@ -77,6 +82,8 @@ export const postSchema = z.object({
   status: workflowStatusSchema,
   primaryPlatform: platformSchema,
   platforms: z.array(platformSchema).min(1),
+  externalId: z.string().min(1).max(120).optional(),
+  publishedUrl: z.string().url().max(500).optional(),
   version: z.number().int().positive(),
   updatedAt: z.string().datetime(),
 })
@@ -157,6 +164,11 @@ export const metricInputSchema = postMetricSchema
   .extend({
     publishedAt: z.string().datetime().optional(),
   })
+
+export const liveMetricSyncInputSchema = z.object({
+  externalId: z.string().trim().min(1).max(120),
+  publishedUrl: z.string().trim().url().max(500).optional(),
+})
 
 export const assetPresignSchema = z.object({
   fileName: z.string().min(1).max(180),

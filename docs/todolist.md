@@ -110,22 +110,22 @@ This checklist is ordered around the MVP golden path:
 
 ### Entity And Service
 
-- [ ] Add optional `youtubeChannelId` to `ProfileEntity` and `accountDnaSchema`.
-- [ ] Add optional `externalId` and `publishedUrl` to `PostEntity` and `postSchema`.
-- [ ] Create `lib/services/metrics-fetcher-service.ts` with `fetchYoutubeVideoStats(videoId)` using YouTube Data API v3 public endpoint and server-side `GOOGLE_PUBLIC_API_KEY`.
-- [ ] Add `GOOGLE_PUBLIC_API_KEY` to `lib/env.ts` validation and `.env.example`.
+- [x] Add optional `youtubeChannelId` to `ProfileEntity` and `accountDnaSchema`.
+- [x] Add optional `externalId` and `publishedUrl` to `PostEntity` and `postSchema`.
+- [x] Create `lib/services/metrics-fetcher-service.ts` with `fetchYoutubeVideoStats(videoId)` using YouTube Data API v3 public endpoint and server-side `GOOGLE_PUBLIC_API_KEY`.
+- [x] Add `GOOGLE_PUBLIC_API_KEY` to `lib/env.ts` validation and `.env.example`.
 
 ### API Route
 
-- [ ] Create `/api/v1/posts/[id]/sync/route.ts` (PATCH) that accepts `externalId`, calls `fetchYoutubeVideoStats`, persists via `saveMetric()`, and returns the synced metric with source tag.
-- [ ] Handle 403 quota-exceeded and network errors gracefully with typed error responses.
+- [x] Create `/api/v1/posts/[id]/sync/route.ts` (PATCH) that accepts `externalId`, calls `fetchYoutubeVideoStats`, persists via `saveMetric()`, and returns the synced metric with source tag.
+- [x] Handle 403 quota-exceeded and network errors gracefully with typed error responses.
 
 ### Frontend Integration
 
-- [ ] Extend `MetricEntryPanel` with a "Sync Live Stats" input field and button above the manual form.
-- [ ] Pre-fill a well-known public YouTube video ID as placeholder for instant judge testing.
-- [ ] Show `(Live synced)` badge on metrics originating from the public API.
-- [ ] Ensure manual metric entry remains fully functional when the Google API key is absent.
+- [x] Extend `MetricEntryPanel` with a "Sync Live Stats" input field and button above the manual form.
+- [x] Pre-fill a well-known public YouTube video ID as placeholder for instant judge testing.
+- [x] Show `(Live synced)` badge on metrics originating from the public API.
+- [x] Ensure manual metric entry remains fully functional when the Google API key is absent.
 
 ### Submission Evidence
 

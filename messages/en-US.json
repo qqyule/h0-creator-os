@@ -194,8 +194,26 @@
       }
     },
     "metrics": {
-      "title": "Manual Metrics",
+      "title": "Metrics",
+      "manualTitle": "Manual entry",
       "save": "Save metrics",
+      "liveSynced": "Live synced",
+      "sync": {
+        "title": "Sync Live Stats",
+        "description": "Paste a public YouTube video ID to pull views, likes, and comments without OAuth. Try GpQSUjNsNm0 or S5xNFmAR2xk.",
+        "button": "Sync live stats",
+        "examplesLabel": "Click an example to fill",
+        "fields": {
+          "externalId": "YouTube video ID",
+          "publishedUrl": "Published URL (optional)"
+        },
+        "messages": {
+          "synced": "Live YouTube stats synced in {mode} mode."
+        },
+        "errors": {
+          "failed": "Live stats could not be synced."
+        }
+      },
       "fields": {
         "views": "Views",
         "likes": "Likes",

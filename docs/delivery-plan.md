@@ -46,7 +46,7 @@ Target length: 2:30-2:50, English narration.
 - Demo data is reset and stable.
 - Primary navigation names match the recorded video.
 - Devpost description is English and mentions the database choice.
-- Architecture diagram shows Browser, Vercel, AI service, DynamoDB, and CI/CD or preview flow.
+- Architecture diagram shows Browser, Vercel, AI service, DynamoDB, optional YouTube Data API metrics sync, and CI/CD or preview flow.
 - Storage Configuration screenshot is captured.
 - Vercel Team ID is recorded outside the repository.
 - Demo video is public and under 3 minutes.

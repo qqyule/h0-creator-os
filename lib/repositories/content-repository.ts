@@ -252,7 +252,7 @@ export async function listPosts(workspaceId: string, month = DEMO_MONTH): Promis
 }
 
 export async function getPostDetail(workspaceId: string, postId: string): Promise<PostDetail> {
-  if (canUseDemoFallback(workspaceId)) {
+  if (!dynamoReady()) {
     return getDemoPostDetailForWorkspace(workspaceId, postId)
   }
 
@@ -264,6 +264,10 @@ export async function getPostDetail(workspaceId: string, postId: string): Promis
   ])
 
   if (!postResult.data) {
+    if (workspaceId === DEMO_WORKSPACE_ID) {
+      return getDemoPostDetailForWorkspace(workspaceId, postId)
+    }
+
     throw new ContentNotFoundError("POST_NOT_FOUND", "Post could not be found.")
   }
 
@@ -403,6 +407,37 @@ export async function saveMetric(workspaceId: string, metric: PostMetric) {
   await PostMetricEntity.put(saved).go()
 
   return { metric, mode: "dynamodb" as const }
+}
+
+export async function savePostExternalReference(
+  workspaceId: string,
+  postId: string,
+  reference: { externalId: string; publishedUrl?: string },
+) {
+  const detail = await getPostDetail(workspaceId, postId)
+  const updatedAt = new Date().toISOString()
+  const post: Post = {
+    ...detail.post,
+    externalId: reference.externalId,
+    publishedUrl: reference.publishedUrl ?? detail.post.publishedUrl,
+    version: detail.post.version + 1,
+    updatedAt,
+  }
+
+  if (!dynamoReady()) {
+    return { post, mode: "demo" as const }
+  }
+
+  await PostEntity.update({ workspaceId, id: postId })
+    .set({
+      externalId: post.externalId,
+      ...(post.publishedUrl ? { publishedUrl: post.publishedUrl } : {}),
+      version: post.version,
+      updatedAt,
+    })
+    .go()
+
+  return { post, mode: "dynamodb" as const }
 }
 
 export async function listMetrics(workspaceId: string, month = DEMO_MONTH): Promise<PostMetric[]> {

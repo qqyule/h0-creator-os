@@ -63,3 +63,11 @@ Use this file to record concise development progress. Do not paste raw chat tran
 - Verification: `pnpm typecheck`, `pnpm lint`, `pnpm build`, `CREATOROS_BASE_URL=http://localhost:3108 pnpm smoke:main-path`, unauthenticated `GET`/`PUT /api/v1/settings/ai` and `POST /api/v1/settings/ai/test` return `403`, and `/settings` redirects to `/sign-in` when Clerk is configured.
 - Risks or notes: Existing dev server on `localhost:3000` returned socket hang-up 500s during smoke, so verification used the built production server on `localhost:3108`. Admin-authenticated AI settings save/read smoke was not run because no authenticated admin Clerk session was available in curl.
 - Next: Re-run AI settings save/read through the settings UI after signing in with an allowlisted Clerk admin, then verify the saved provider config on Vercel with the dedicated least-privilege IAM identity.
+
+## 2026-06-11 - P1.5 Public Metrics Sync Implemented
+
+- Goal: Add optional no-auth YouTube public stats sync into the post metrics loop without adding OAuth or a new provider SDK.
+- Changed: Added optional YouTube/external ID fields to domain and ElectroDB entities, added `source` on metrics with a manual default, created the server-side YouTube stats fetcher and `PATCH /api/v1/posts/[id]/sync`, and added the Sync Live Stats UI above manual metric entry.
+- Verification: `pnpm typecheck`, `pnpm lint`, `pnpm build`, `git diff --check`, `CREATOROS_BASE_URL=http://localhost:3110 pnpm smoke:main-path`, no-key sync API returns typed `YOUTUBE_API_UNCONFIGURED`, invalid ID returns typed `YOUTUBE_INVALID_VIDEO_ID`, manual metric import still returns `200`, and browser smoke confirmed `/post/post-01` renders Sync Live Stats plus Manual entry on desktop/mobile.
+- Risks or notes: Real YouTube success sync was not run because `GOOGLE_PUBLIC_API_KEY` is not configured locally. Local browser console still shows the existing Vercel Analytics 404 in non-Vercel runtime.
+- Next: Add `GOOGLE_PUBLIC_API_KEY` in the deployment environment, re-run `PATCH /api/v1/posts/post-01/sync` with a public video ID, then include YouTube Data API v3 in the final architecture diagram and Devpost copy.
