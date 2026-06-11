@@ -27,7 +27,7 @@ The UI uses `next-intl` with `en-US` as the default locale and `zh-CN` as the se
 
 `CREATOROS_ADMIN_CLERK_USER_IDS` is a comma-separated allowlist of Clerk user IDs that can call AI settings, S3 presign, and Resend smoke endpoints. If it is missing, those admin endpoints return `403`.
 
-The AI settings page stores encrypted local runtime settings under `.creatoros/ai-settings.json`. The `.creatoros/` directory is ignored by git and should not be used as the long-term production configuration store.
+The AI settings page stores encrypted provider settings in DynamoDB through the `AiSettings` ElectroDB entity. Saving settings requires DynamoDB configuration; reading settings falls back to `OPENAI_*` environment variables when no saved config exists.
 
 ## DynamoDB Table
 

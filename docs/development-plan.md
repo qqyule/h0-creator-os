@@ -1,6 +1,6 @@
 # Development Plan
 
-Last updated: 2026-06-10
+Last updated: 2026-06-11
 
 This plan turns the CreatorOS PRD and architecture notes into an implementation sequence. The goal is to ship the H0 MVP path without expanding scope beyond the judging demo.
 
@@ -178,11 +178,11 @@ Acceptance criteria:
 
 Address critical deployment and security design deviations identified during P0/P1 review.
 
-- Rename `proxy.ts` to `middleware.ts` at the project root to ensure Clerk route protection is properly recognized and executed by Next.js.
-- Migrate AI settings persistence from local `.creatoros/ai-settings.json` disk storage to DynamoDB (e.g. as part of ProfileEntity or a separate config model) to avoid write errors and settings loss in the read-only, stateless Vercel Serverless environment.
+- Keep `proxy.ts` at the project root for Next.js 16 Proxy route protection; do not rename it to `middleware.ts`.
+- Migrate AI settings persistence from local `.creatoros/ai-settings.json` disk storage to DynamoDB through a separate ElectroDB config model to avoid write errors and settings loss in the read-only, stateless Vercel Serverless environment.
 
 Acceptance criteria:
-- Unauthenticated access to protected routes like `/settings` is correctly blocked and redirected by Next.js Middleware.
+- Unauthenticated access to protected routes like `/settings` is correctly blocked and redirected by Next.js Proxy when Clerk is configured.
 - AI settings can be saved and retrieved successfully without any disk-write operations, resolving Vercel deployment compatibility.
 
 ### 6. Submission Hardening

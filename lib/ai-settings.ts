@@ -1,9 +1,12 @@
 import "server-only"
 
-import { promises as fs } from "node:fs"
-import path from "node:path"
 import { createCipheriv, createDecipheriv, createHash, randomBytes } from "node:crypto"
 import { getOptionalEnv } from "@/lib/env"
+import {
+  canPersistAiSettings,
+  readStoredAiSettings,
+  saveStoredAiSettings,
+} from "@/lib/repositories/ai-settings-repository"
 
 export type AiSettings = {
   baseUrl: string
@@ -37,6 +40,7 @@ export type AiSettingsErrorCode =
   | "decrypt_failed"
   | "auth_failed"
   | "network_error"
+  | "storage_unavailable"
   | "provider_error"
 
 export class AiSettingsError extends Error {
@@ -50,8 +54,6 @@ export class AiSettingsError extends Error {
     this.status = status
   }
 }
-
-const settingsPath = path.join(process.cwd(), ".creatoros", "ai-settings.json")
 
 function defaultSettings(): AiSettings {
   const envApiKey = getOptionalEnv("OPENAI_API_KEY")
@@ -153,20 +155,9 @@ function maskApiKey(apiKey: string) {
   return `${apiKey.slice(0, 3)}...${apiKey.slice(-4)}`
 }
 
-async function ensureSettingsDir() {
-  await fs.mkdir(path.dirname(settingsPath), { recursive: true })
-}
-
 export async function readAiSettings(): Promise<AiSettings> {
-  try {
-    const file = await fs.readFile(settingsPath, "utf8")
-    return { ...defaultSettings(), ...JSON.parse(file) }
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === "ENOENT") {
-      return defaultSettings()
-    }
-    throw error
-  }
+  const stored = await readStoredAiSettings()
+  return stored ? { ...defaultSettings(), ...stored } : defaultSettings()
 }
 
 export async function getPublicAiSettings(): Promise<PublicAiSettings> {
@@ -184,6 +175,15 @@ export async function getPublicAiSettings(): Promise<PublicAiSettings> {
 export async function saveAiSettings(input: SaveAiSettingsInput): Promise<PublicAiSettings> {
   const current = await readAiSettings()
   const nextInput = validateAiSettingsInput(input)
+
+  if (!canPersistAiSettings()) {
+    throw new AiSettingsError(
+      "storage_unavailable",
+      "DynamoDB must be configured before saving AI provider settings.",
+      500,
+    )
+  }
+
   const next: AiSettings = {
     ...current,
     baseUrl: nextInput.baseUrl,
@@ -197,8 +197,14 @@ export async function saveAiSettings(input: SaveAiSettingsInput): Promise<Public
     next.apiKeyHint = maskApiKey(nextInput.apiKey)
   }
 
-  await ensureSettingsDir()
-  await fs.writeFile(settingsPath, `${JSON.stringify(next, null, 2)}\n`, { mode: 0o600 })
+  await saveStoredAiSettings({
+    baseUrl: next.baseUrl,
+    model: next.model,
+    enabled: next.enabled,
+    encryptedApiKey: next.encryptedApiKey,
+    apiKeyHint: next.apiKeyHint,
+    updatedAt: next.updatedAt ?? new Date().toISOString(),
+  })
 
   return getPublicAiSettings()
 }

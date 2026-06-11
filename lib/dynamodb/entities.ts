@@ -303,6 +303,36 @@ export const InsightEntity = new Entity(
   { client, table },
 )
 
+export const AiSettingsEntity = new Entity(
+  {
+    model: { entity: "AiSettings", service, version },
+    attributes: {
+      configId: { type: "string", required: true },
+      baseUrl: { type: "string", required: true },
+      model: { type: "string", required: true },
+      enabled: { type: "boolean", required: true },
+      encryptedApiKey: { type: "string" },
+      apiKeyHint: { type: "string" },
+      updatedAt: { type: "string", required: true },
+    },
+    indexes: {
+      settings: {
+        pk: {
+          field: "pk",
+          composite: ["configId"],
+          template: "CONFIG#${configId}",
+        },
+        sk: {
+          field: "sk",
+          composite: [],
+          template: "SETTINGS",
+        },
+      },
+    },
+  },
+  { client, table },
+)
+
 export const ContentService = new Service(
   {
     profile: ProfileEntity,

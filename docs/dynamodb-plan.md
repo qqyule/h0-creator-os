@@ -1,6 +1,6 @@
 # DynamoDB Implementation Plan
 
-Last updated: 2026-06-10
+Last updated: 2026-06-11
 
 DynamoDB is a core technical proof point for CreatorOS, not just a storage choice. The H0 build should make DynamoDB access-pattern design visible in the code, deployment plan, architecture diagram, and demo evidence.
 
@@ -60,6 +60,7 @@ Use ElectroDB entities for all table items. Application features should call rep
 | `DraftVersion` | `pk=WORKSPACE#{workspaceId}`, `sk=POST#{postId}#DRAFT#{platform}#{version}` | optional | Generated or edited drafts |
 | `PostMetric` | `pk=WORKSPACE#{workspaceId}`, `sk=POST#{postId}#METRIC#{publishedAt}` | `gsi1pk=WORKSPACE#{workspaceId}#METRICS#{yyyy-mm}`, `gsi1sk=DATE#{publishedAt}#POST#{postId}` | Views, likes, comments, saves, followers gained |
 | `Insight` | `pk=WORKSPACE#{workspaceId}`, `sk=INSIGHT#{yyyy-mm}#{generatedAt}` | `gsi1pk=WORKSPACE#{workspaceId}#MONTH#{yyyy-mm}`, `gsi1sk=INSIGHT#{generatedAt}` | Next-cycle insight generated from plan plus metrics |
+| `AiSettings` | `pk=CONFIG#{configId}`, `sk=SETTINGS` | none required | Deployment-level AI provider configuration for admin-managed generation settings |
 
 ## Required Access Patterns
 
@@ -76,6 +77,7 @@ Use ElectroDB entities for all table items. Application features should call rep
 | Save rewrite | Put platform variant | primary key |
 | Save metrics | Put metric item | primary key plus GSI1 metrics partition |
 | Generate insights | Query plan, posts, and metrics by month | primary key plus GSI1 monthly and metrics partitions |
+| Read or save AI settings | Get or put one deployment-level config item | primary key |
 | Seed demo workspace | Batch write deterministic items | restricted seed/admin script only |
 
 Production application code should not use table scans. If a seed, migration, or admin-only script needs `Scan`, document it and keep it outside runtime request paths.

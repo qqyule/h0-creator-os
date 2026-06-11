@@ -103,8 +103,8 @@ This checklist is ordered around the MVP golden path:
 
 ### Security & Serverless Hardening
 
-- [ ] Rename `proxy.ts` to `middleware.ts` at project root to ensure Clerk route protection is recognized and executed by Next.js.
-- [ ] Migrate AI Settings persistence from local `.creatoros/ai-settings.json` disk storage to DynamoDB (e.g. ProfileEntity or a new ConfigEntity) to resolve write errors and config loss in Vercel Serverless environment.
+- [x] Keep `proxy.ts` at project root for Next.js 16 Proxy route protection and verify Clerk protects `/settings` when configured.
+- [x] Migrate AI Settings persistence from local `.creatoros/ai-settings.json` disk storage to DynamoDB through an ElectroDB config entity.
 
 ## P1.5 - Public Metrics Sync (No-Auth Data Feedback)
 

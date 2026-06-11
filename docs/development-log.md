@@ -55,3 +55,11 @@ Use this file to record concise development progress. Do not paste raw chat tran
 - Passed after AWS reauthentication: DynamoDB `DescribeTable` and demo workspace query succeeded; table status is `ACTIVE`, billing mode is `PAY_PER_REQUEST`, and demo items are visible. S3 smoke upload plus `HeadObject` succeeded for `smoke/creatoros-1781160812530.txt`.
 - Risk: The local AWS identity currently resolves to the account root ARN. Do not deploy root access keys to Vercel; create a dedicated least-privilege IAM runtime identity before production deployment.
 - Next: Create and verify a least-privilege IAM user or role for Vercel, then re-run DynamoDB/S3 smoke using that identity.
+
+## 2026-06-11 - Security And Serverless Hardening
+
+- Goal: Remove Vercel-incompatible AI settings disk persistence and resolve the stale `middleware.ts` TODO for Next.js 16.
+- Changed: Kept root `proxy.ts` as the correct Next.js 16 Proxy convention, added an ElectroDB `AiSettings` config entity, moved AI provider settings persistence behind `lib/repositories/ai-settings-repository.ts`, and removed `.creatoros/ai-settings.json` reads/writes from runtime code.
+- Verification: `pnpm typecheck`, `pnpm lint`, `pnpm build`, `CREATOROS_BASE_URL=http://localhost:3108 pnpm smoke:main-path`, unauthenticated `GET`/`PUT /api/v1/settings/ai` and `POST /api/v1/settings/ai/test` return `403`, and `/settings` redirects to `/sign-in` when Clerk is configured.
+- Risks or notes: Existing dev server on `localhost:3000` returned socket hang-up 500s during smoke, so verification used the built production server on `localhost:3108`. Admin-authenticated AI settings save/read smoke was not run because no authenticated admin Clerk session was available in curl.
+- Next: Re-run AI settings save/read through the settings UI after signing in with an allowlisted Clerk admin, then verify the saved provider config on Vercel with the dedicated least-privilege IAM identity.
