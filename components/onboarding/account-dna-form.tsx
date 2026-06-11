@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import { AlertCircle, CheckCircle2, Loader2, Save } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
 import type { AccountDna, PlatformId } from "@/lib/domain"
 
@@ -14,6 +15,7 @@ const platformOptions: { value: PlatformId; label: string }[] = [
 ]
 
 export function AccountDnaForm({ profile }: { profile: AccountDna }) {
+  const t = useTranslations("accountDnaForm")
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [message, setMessage] = useState<{ tone: "success" | "error"; text: string } | null>(null)
@@ -39,7 +41,7 @@ export function AccountDnaForm({ profile }: { profile: AccountDna }) {
         }
 
         if (!selectedPlatforms.length) {
-          setMessage({ tone: "error", text: "Select at least one platform." })
+          setMessage({ tone: "error", text: t("errors.platformRequired") })
           return
         }
 
@@ -51,13 +53,13 @@ export function AccountDnaForm({ profile }: { profile: AccountDna }) {
         const profileResult = (await profileResponse.json()) as ApiResult<{ warning?: string }>
 
         if (!profileResult.ok) {
-          setMessage({ tone: "error", text: profileResult.error?.message ?? "Account DNA could not be saved." })
+          setMessage({ tone: "error", text: profileResult.error?.message ?? t("errors.saveFailed") })
           return
         }
 
         setMessage({
           tone: "success",
-          text: profileResult.data?.warning ?? "Account DNA saved. Generating the 30-day plan...",
+          text: profileResult.data?.warning ?? t("messages.generatingPlan"),
         })
 
         const planResponse = await fetch("/api/v1/plans/generate", {
@@ -71,13 +73,13 @@ export function AccountDnaForm({ profile }: { profile: AccountDna }) {
         }>
 
         if (!planResult.ok) {
-          setMessage({ tone: "error", text: planResult.error?.message ?? "Monthly plan could not be generated." })
+          setMessage({ tone: "error", text: planResult.error?.message ?? t("errors.planFailed") })
           return
         }
 
         router.push("/calendar")
       } catch {
-        setMessage({ tone: "error", text: "Onboarding could not be completed. Try again." })
+        setMessage({ tone: "error", text: t("errors.unexpected") })
       }
     })
   }
@@ -85,18 +87,16 @@ export function AccountDnaForm({ profile }: { profile: AccountDna }) {
   return (
     <form action={onSubmit} className="rounded-2xl border border-border bg-card p-5 shadow-sm">
       <div>
-        <h2 className="text-base font-semibold text-foreground">Account DNA</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          This context powers the monthly plan and platform rewrites.
-        </p>
+        <h2 className="text-base font-semibold text-foreground">{t("title")}</h2>
+        <p className="mt-1 text-sm text-muted-foreground">{t("description")}</p>
       </div>
 
       <div className="mt-5 grid gap-4">
-        <Field label="Niche" name="niche" defaultValue={profile.niche} />
-        <Field label="Audience" name="audience" defaultValue={profile.audience} />
+        <Field label={t("fields.niche")} name="niche" defaultValue={profile.niche} />
+        <Field label={t("fields.audience")} name="audience" defaultValue={profile.audience} />
 
-        <div>
-          <label className="text-sm font-medium text-foreground">Platforms</label>
+        <fieldset>
+          <legend className="text-sm font-medium text-foreground">{t("fields.platforms")}</legend>
           <div className="mt-2 flex flex-wrap gap-2">
             {platformOptions.map((platform) => {
               const active = selectedPlatforms.includes(platform.value)
@@ -117,16 +117,16 @@ export function AccountDnaForm({ profile }: { profile: AccountDna }) {
               )
             })}
           </div>
-        </div>
+        </fieldset>
 
         <div className="grid gap-4 md:grid-cols-2">
-          <Field label="Cadence" name="cadence" defaultValue={profile.cadence} />
-          <Field label="Tone" name="tone" defaultValue={profile.tone} />
+          <Field label={t("fields.cadence")} name="cadence" defaultValue={profile.cadence} />
+          <Field label={t("fields.tone")} name="tone" defaultValue={profile.tone} />
         </div>
 
         <div>
           <label htmlFor="goals" className="text-sm font-medium text-foreground">
-            Goals
+            {t("fields.goals")}
           </label>
           <textarea
             id="goals"
@@ -135,12 +135,13 @@ export function AccountDnaForm({ profile }: { profile: AccountDna }) {
             defaultValue={profile.goals.join("\n")}
             className="mt-2 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm leading-6 text-foreground outline-none transition focus:border-ring focus:ring-3 focus:ring-ring/20"
           />
-          <p className="mt-1 text-xs text-muted-foreground">One goal per line, or comma-separated.</p>
+          <p className="mt-1 text-xs text-muted-foreground">{t("goalsHint")}</p>
         </div>
       </div>
 
       {message ? (
         <div
+          role={message.tone === "success" ? "status" : "alert"}
           className={`mt-5 flex items-start gap-2 rounded-xl border p-3 text-sm ${
             message.tone === "success"
               ? "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-400/30 dark:bg-emerald-400/10 dark:text-emerald-200"
@@ -155,7 +156,7 @@ export function AccountDnaForm({ profile }: { profile: AccountDna }) {
       <div className="mt-5 flex justify-end">
         <Button type="submit" disabled={isPending || selectedPlatforms.length === 0} size="lg">
           {isPending ? <Loader2 className="animate-spin" data-icon="inline-start" /> : <Save data-icon="inline-start" />}
-          {isPending ? "Saving and generating..." : "Save Account DNA"}
+          {isPending ? t("saving") : t("save")}
         </Button>
       </div>
     </form>

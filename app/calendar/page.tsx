@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { CalendarDays, ChevronRight } from "lucide-react"
 import { notFound } from "next/navigation"
+import { getTranslations } from "next-intl/server"
 import { AppShell } from "@/components/app/app-shell"
 import { PlatformPill } from "@/components/app/platform-pill"
 import { StatusBadge } from "@/components/app/status-badge"
@@ -11,6 +12,7 @@ import { ContentNotFoundError, getMonthlyPlan } from "@/lib/repositories/content
 import { resolveWorkspace } from "@/lib/workspace"
 
 export default async function CalendarPage() {
+  const t = await getTranslations("calendar")
   const workspace = await resolveWorkspace()
   let plan: MonthlyPlan
   try {
@@ -29,13 +31,13 @@ export default async function CalendarPage() {
       <div className="flex flex-col gap-6">
         <section className="flex flex-col gap-4 border-b border-border pb-6 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="text-sm font-medium text-primary">30-day planning view</p>
+            <p className="text-sm font-medium text-primary">{t("eyebrow")}</p>
             <h1 className="mt-2 text-3xl font-semibold tracking-tight text-foreground">{plan.title}</h1>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">{plan.summary}</p>
           </div>
           <Button asChild size="lg">
             <Link href={`/post/${plan.posts[0]?.id ?? "post-01"}`}>
-              Open first post
+              {t("openFirstPost")}
               <ChevronRight data-icon="inline-end" />
             </Link>
           </Button>
@@ -45,9 +47,9 @@ export default async function CalendarPage() {
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               <CalendarDays className="h-5 w-5 text-primary" />
-              <h2 className="text-base font-semibold text-foreground">June 2026 Calendar</h2>
+              <h2 className="text-base font-semibold text-foreground">{t("calendarTitle")}</h2>
             </div>
-            <div className="text-sm text-muted-foreground">{plan.posts.length} planned posts</div>
+            <div className="text-sm text-muted-foreground">{t("plannedPosts", { count: plan.posts.length })}</div>
           </div>
 
           {plan.posts.length ? (
@@ -78,8 +80,8 @@ export default async function CalendarPage() {
             </div>
           ) : (
             <div className="mt-5 rounded-xl border border-dashed border-border p-8 text-center">
-              <p className="font-medium text-foreground">No posts planned yet.</p>
-              <p className="mt-1 text-sm text-muted-foreground">Generate a monthly plan from Account DNA to fill the calendar.</p>
+              <p className="font-medium text-foreground">{t("empty.title")}</p>
+              <p className="mt-1 text-sm text-muted-foreground">{t("empty.description")}</p>
             </div>
           )}
         </section>

@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react"
 import { Loader2, Sparkles } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
 import type { Insight } from "@/lib/domain"
 
@@ -12,6 +13,7 @@ type ApiResult<T> = {
 }
 
 export function InsightGenerator({ month }: { month: string }) {
+  const t = useTranslations("insightGenerator")
   const [isPending, startTransition] = useTransition()
   const [message, setMessage] = useState<string | null>(null)
   const [insight, setInsight] = useState<Insight | null>(null)
@@ -29,12 +31,12 @@ export function InsightGenerator({ month }: { month: string }) {
       }>
 
       if (!result.ok || !result.data) {
-        setMessage(result.error?.message ?? "Insight could not be generated.")
+        setMessage(result.error?.message ?? t("errors.generateFailed"))
         return
       }
 
       setInsight(result.data.generation.data)
-      setMessage(result.data.generation.warning ?? `Insight generated with ${result.data.generation.source}.`)
+      setMessage(result.data.generation.warning ?? t("messages.generated", { source: result.data.generation.source }))
     })
   }
 
@@ -42,12 +44,12 @@ export function InsightGenerator({ month }: { month: string }) {
     <section className="rounded-2xl border border-border bg-card p-5 shadow-sm">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-base font-semibold text-foreground">Generate Next-cycle Insight</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Uses the current plan and manual metrics, with fallback if AI is unconfigured.</p>
+          <h2 className="text-base font-semibold text-foreground">{t("title")}</h2>
+          <p className="mt-1 text-sm text-muted-foreground">{t("description")}</p>
         </div>
         <Button onClick={generate} disabled={isPending}>
           {isPending ? <Loader2 className="animate-spin" data-icon="inline-start" /> : <Sparkles data-icon="inline-start" />}
-          Generate insight
+          {t("generate")}
         </Button>
       </div>
       {insight ? (
@@ -56,7 +58,7 @@ export function InsightGenerator({ month }: { month: string }) {
           <p className="mt-2 text-sm leading-6 text-muted-foreground">{insight.summary}</p>
         </div>
       ) : null}
-      {message ? <p className="mt-3 text-sm text-muted-foreground">{message}</p> : null}
+      {message ? <p className="mt-3 text-sm text-muted-foreground" role="status">{message}</p> : null}
     </section>
   )
 }

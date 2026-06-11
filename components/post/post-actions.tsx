@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react"
 import { AlertCircle, CheckCircle2, Loader2, PenLine, Save, Sparkles } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { PlatformPill } from "@/components/app/platform-pill"
 import { StatusBadge } from "@/components/app/status-badge"
 import { Button } from "@/components/ui/button"
@@ -27,6 +28,7 @@ export function RewritePanel({
   post: Post
   initialVariants: PlatformVariant[]
 }) {
+  const t = useTranslations("postActions.rewrite")
   const [variants, setVariants] = useState(initialVariants)
   const [platform, setPlatform] = useState<PlatformId>(post.primaryPlatform)
   const [message, setMessage] = useState<string | null>(null)
@@ -46,7 +48,7 @@ export function RewritePanel({
       }>
 
       if (!result.ok || !result.data) {
-        setMessage(result.error?.message ?? "Rewrite could not be generated.")
+        setMessage(result.error?.message ?? t("errors.generateFailed"))
         return
       }
 
@@ -54,7 +56,7 @@ export function RewritePanel({
         ...current.filter((variant) => variant.platform !== platform),
         result.data!.generation.data,
       ])
-      setMessage(result.data.generation.warning ?? `Rewrite generated with ${result.data.generation.source}.`)
+      setMessage(result.data.generation.warning ?? t("messages.generated", { source: result.data.generation.source }))
     })
   }
 
@@ -62,20 +64,21 @@ export function RewritePanel({
     <section className="rounded-2xl border border-border bg-card p-5 shadow-sm">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-base font-semibold text-foreground">Platform Rewrite</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Adapt the same idea for each channel without changing the source post.</p>
+          <h2 className="text-base font-semibold text-foreground">{t("title")}</h2>
+          <p className="mt-1 text-sm text-muted-foreground">{t("description")}</p>
         </div>
         <Button onClick={generateRewrite} disabled={isPending}>
           {isPending ? <Loader2 className="animate-spin" data-icon="inline-start" /> : <Sparkles data-icon="inline-start" />}
-          Generate rewrite
+          {t("generate")}
         </Button>
       </div>
 
-      <div className="mt-4 flex flex-wrap gap-2">
+      <div className="mt-4 flex flex-wrap gap-2" role="group" aria-label={t("platformGroup")}>
         {post.platforms.map((item) => (
           <button
             key={item}
             type="button"
+            aria-pressed={platform === item}
             onClick={() => setPlatform(item)}
             className={`rounded-lg border px-3 py-2 text-sm font-medium ${
               platform === item
@@ -94,7 +97,7 @@ export function RewritePanel({
             <div className="flex flex-wrap items-center gap-2">
               <PlatformPill platform={activeVariant.platform} />
               <span className="rounded-md bg-muted px-2 py-1 text-xs text-muted-foreground">
-                {activeVariant.characterCount} characters
+                {t("characterCount", { count: activeVariant.characterCount })}
               </span>
             </div>
             <h3 className="mt-4 text-lg font-semibold text-foreground">{activeVariant.headline}</h3>
@@ -103,14 +106,14 @@ export function RewritePanel({
           </div>
         ) : (
           <div className="rounded-lg border border-dashed border-border p-6 text-center">
-            <p className="font-medium text-foreground">No rewrite for this platform yet.</p>
-            <p className="mt-1 text-sm text-muted-foreground">Generate a validated variant to keep it tied to this post.</p>
+            <p className="font-medium text-foreground">{t("empty.title")}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{t("empty.description")}</p>
           </div>
         )}
       </div>
 
       {message ? (
-        <div className="mt-4 flex items-start gap-2 rounded-xl border border-border bg-muted/40 p-3 text-sm text-muted-foreground">
+        <div className="mt-4 flex items-start gap-2 rounded-xl border border-border bg-muted/40 p-3 text-sm text-muted-foreground" role="status">
           <CheckCircle2 className="mt-0.5 h-4 w-4 text-success" />
           <span>{message}</span>
         </div>
@@ -120,6 +123,7 @@ export function RewritePanel({
 }
 
 export function StatusPanel({ post }: { post: Post }) {
+  const t = useTranslations("postActions.status")
   const [status, setStatus] = useState(post.status)
   const [version, setVersion] = useState(post.version)
   const [message, setMessage] = useState<{ tone: "success" | "error"; text: string } | null>(null)
@@ -136,13 +140,13 @@ export function StatusPanel({ post }: { post: Post }) {
       const result = (await response.json()) as ApiResult<{ post: Post }>
 
       if (!result.ok || !result.data) {
-        setMessage({ tone: "error", text: result.error?.message ?? "Status could not be updated." })
+        setMessage({ tone: "error", text: result.error?.message ?? t("errors.updateFailed") })
         return
       }
 
       setStatus(result.data.post.status)
       setVersion(result.data.post.version)
-      setMessage({ tone: "success", text: "Status update accepted through the server boundary." })
+      setMessage({ tone: "success", text: t("messages.updated") })
     })
   }
 
@@ -150,18 +154,19 @@ export function StatusPanel({ post }: { post: Post }) {
     <section className="rounded-2xl border border-border bg-card p-5 shadow-sm">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h2 className="text-base font-semibold text-foreground">Workflow Status</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Version {version}; status writes use conflict-aware payloads.</p>
+          <h2 className="text-base font-semibold text-foreground">{t("title")}</h2>
+          <p className="mt-1 text-sm text-muted-foreground">{t("description", { version })}</p>
         </div>
         <StatusBadge status={status} />
       </div>
-      <div className="mt-4 flex flex-wrap gap-2">
+      <div className="mt-4 flex flex-wrap gap-2" role="group" aria-label={t("statusGroup")}>
         {workflowStatuses.map((item) => (
           <Button
             key={item}
             type="button"
             variant={item === status ? "default" : "outline"}
             disabled={isPending}
+            aria-pressed={item === status}
             onClick={() => updateStatus(item)}
           >
             {item}
@@ -170,6 +175,7 @@ export function StatusPanel({ post }: { post: Post }) {
       </div>
       {message ? (
         <div
+          role={message.tone === "success" ? "status" : "alert"}
           className={`mt-4 flex items-start gap-2 rounded-xl border p-3 text-sm ${
             message.tone === "success"
               ? "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-400/30 dark:bg-emerald-400/10 dark:text-emerald-200"
@@ -185,6 +191,7 @@ export function StatusPanel({ post }: { post: Post }) {
 }
 
 export function MetricEntryPanel({ post, initialMetrics }: { post: Post; initialMetrics: PostMetric[] }) {
+  const t = useTranslations("postActions.metrics")
   const [metrics, setMetrics] = useState(initialMetrics)
   const [message, setMessage] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
@@ -209,43 +216,43 @@ export function MetricEntryPanel({ post, initialMetrics }: { post: Post; initial
       const result = (await response.json()) as ApiResult<{ metric: PostMetric; mode: string }>
 
       if (!result.ok || !result.data) {
-        setMessage(result.error?.message ?? "Metric could not be saved.")
+        setMessage(result.error?.message ?? t("errors.saveFailed"))
         return
       }
 
       setMetrics((current) => [result.data!.metric, ...current])
-      setMessage(`Metric saved in ${result.data.mode} mode.`)
+      setMessage(t("messages.saved", { mode: result.data.mode }))
     })
   }
 
   return (
     <section className="rounded-2xl border border-border bg-card p-5 shadow-sm">
-      <h2 className="text-base font-semibold text-foreground">Manual Metrics</h2>
+      <h2 className="text-base font-semibold text-foreground">{t("title")}</h2>
       <form action={onSubmit} className="mt-4 grid gap-3">
         <div className="grid grid-cols-2 gap-3">
-          <NumberField name="views" label="Views" defaultValue={5200} />
-          <NumberField name="likes" label="Likes" defaultValue={260} />
-          <NumberField name="comments" label="Comments" defaultValue={32} />
-          <NumberField name="saves" label="Saves" defaultValue={61} />
-          <NumberField name="followersGained" label="Followers gained" defaultValue={11} />
+          <NumberField name="views" label={t("fields.views")} defaultValue={5200} />
+          <NumberField name="likes" label={t("fields.likes")} defaultValue={260} />
+          <NumberField name="comments" label={t("fields.comments")} defaultValue={32} />
+          <NumberField name="saves" label={t("fields.saves")} defaultValue={61} />
+          <NumberField name="followersGained" label={t("fields.followersGained")} defaultValue={11} />
         </div>
         <Button type="submit" disabled={isPending}>
           {isPending ? <Loader2 className="animate-spin" data-icon="inline-start" /> : <Save data-icon="inline-start" />}
-          Save metrics
+          {t("save")}
         </Button>
       </form>
-      {message ? <p className="mt-3 text-sm text-muted-foreground">{message}</p> : null}
+      {message ? <p className="mt-3 text-sm text-muted-foreground" role="status">{message}</p> : null}
       <div className="mt-4 grid gap-2">
         {metrics.length ? (
           metrics.slice(0, 3).map((metric) => (
             <div key={`${metric.postId}-${metric.publishedAt}`} className="rounded-lg border border-border bg-background p-3 text-sm">
-              <span className="font-medium text-foreground">{metric.views.toLocaleString()} views</span>
-              <span className="text-muted-foreground"> · {metric.likes} likes · {metric.saves} saves</span>
+              <span className="font-medium text-foreground">{t("metricSummary.views", { views: metric.views.toLocaleString() })}</span>
+              <span className="text-muted-foreground"> · {t("metricSummary.likes", { likes: metric.likes })} · {t("metricSummary.saves", { saves: metric.saves })}</span>
             </div>
           ))
         ) : (
           <div className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
-            No metrics recorded for this post yet.
+            {t("empty")}
           </div>
         )}
       </div>
@@ -254,6 +261,7 @@ export function MetricEntryPanel({ post, initialMetrics }: { post: Post; initial
 }
 
 export function DraftPanel({ post }: { post: Post }) {
+  const t = useTranslations("postActions.draft")
   const [message, setMessage] = useState<string | null>(null)
   const [draft, setDraft] = useState(post.draft)
   const [isPending, startTransition] = useTransition()
@@ -269,28 +277,28 @@ export function DraftPanel({ post }: { post: Post }) {
       const result = (await response.json()) as ApiResult<{ generation: { data: { body: string; version: number }; warning?: string } }>
 
       if (!result.ok || !result.data) {
-        setMessage(result.error?.message ?? "Draft could not be generated.")
+        setMessage(result.error?.message ?? t("errors.generateFailed"))
         return
       }
 
       setDraft(result.data.generation.data.body)
-      setMessage(result.data.generation.warning ?? `Draft version ${result.data.generation.data.version} generated.`)
+      setMessage(result.data.generation.warning ?? t("messages.generated", { version: result.data.generation.data.version }))
     })
   }
 
   return (
     <section className="rounded-2xl border border-border bg-card p-5 shadow-sm">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="text-base font-semibold text-foreground">Draft</h2>
+        <h2 className="text-base font-semibold text-foreground">{t("title")}</h2>
         <Button type="button" variant="outline" disabled={isPending} onClick={generateDraft}>
           {isPending ? <Loader2 className="animate-spin" data-icon="inline-start" /> : <PenLine data-icon="inline-start" />}
-          Generate draft
+          {t("generate")}
         </Button>
       </div>
       <p className="mt-4 whitespace-pre-line rounded-xl border border-border bg-background p-4 text-sm leading-6 text-muted-foreground">
         {draft}
       </p>
-      {message ? <p className="mt-3 text-sm text-muted-foreground">{message}</p> : null}
+      {message ? <p className="mt-3 text-sm text-muted-foreground" role="status">{message}</p> : null}
     </section>
   )
 }

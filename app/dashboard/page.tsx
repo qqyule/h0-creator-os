@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { ArrowRight, CalendarDays, CheckCircle2, Sparkles, Target, Workflow } from "lucide-react"
 import { notFound } from "next/navigation"
+import { getTranslations } from "next-intl/server"
 import { AppShell } from "@/components/app/app-shell"
 import { PlatformPill } from "@/components/app/platform-pill"
 import { StatusBadge } from "@/components/app/status-badge"
@@ -11,6 +12,7 @@ import { ContentNotFoundError, getDashboardSummary } from "@/lib/repositories/co
 import { resolveWorkspace } from "@/lib/workspace"
 
 export default async function DashboardPage() {
+  const t = await getTranslations("dashboard")
   const workspace = await resolveWorkspace()
   let summary: DashboardSummary
   try {
@@ -42,45 +44,45 @@ export default async function DashboardPage() {
       <div className="flex flex-col gap-6">
         <section className="flex flex-col gap-4 border-b border-border pb-6 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="text-sm font-medium text-primary">Judge demo workspace</p>
-            <h1 className="mt-2 text-3xl font-semibold tracking-tight text-foreground">CreatorOS command center</h1>
+            <p className="text-sm font-medium text-primary">{t("hero.eyebrow")}</p>
+            <h1 className="mt-2 text-3xl font-semibold tracking-tight text-foreground">{t("hero.title")}</h1>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
-              Plan, adapt, publish, measure, and feed the next 30-day cycle from one workspace.
+              {t("hero.description")}
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
             <Button asChild size="lg">
               <Link href="/onboarding">
                 <Sparkles data-icon="inline-start" />
-                Update Account DNA
+                {t("hero.updateDna")}
               </Link>
             </Button>
             <Button asChild variant="outline" size="lg">
               <Link href="/calendar">
                 <CalendarDays data-icon="inline-start" />
-                Open Calendar
+                {t("hero.openCalendar")}
               </Link>
             </Button>
           </div>
         </section>
 
         <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <MetricCard label="Planned posts" value={summary.posts.length.toString()} detail={summary.plan.title} />
-          <MetricCard label="Published views" value={publishedMetrics.views.toLocaleString()} detail="From demo metrics" />
-          <MetricCard label="Engagements" value={publishedMetrics.likes.toLocaleString()} detail="Likes tracked manually" />
-          <MetricCard label="Followers gained" value={publishedMetrics.followersGained.toLocaleString()} detail="Feedback loop input" />
+          <MetricCard label={t("metrics.plannedPosts")} value={summary.posts.length.toString()} detail={summary.plan.title} />
+          <MetricCard label={t("metrics.publishedViews")} value={publishedMetrics.views.toLocaleString()} detail={t("metrics.demoMetrics")} />
+          <MetricCard label={t("metrics.engagements")} value={publishedMetrics.likes.toLocaleString()} detail={t("metrics.likesTracked")} />
+          <MetricCard label={t("metrics.followersGained")} value={publishedMetrics.followersGained.toLocaleString()} detail={t("metrics.feedbackLoop")} />
         </section>
 
         <section className="grid gap-5 xl:grid-cols-[minmax(0,4fr)_minmax(0,3fr)]">
-          <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <h2 className="text-base font-semibold text-foreground">Monthly Plan</h2>
+          <div className="min-w-0 rounded-2xl border border-border bg-card p-5 shadow-sm">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0">
+                <h2 className="text-base font-semibold text-foreground">{t("monthlyPlan.title")}</h2>
                 <p className="mt-1 text-sm text-muted-foreground">{summary.plan.summary}</p>
               </div>
-              <Button asChild variant="outline">
+              <Button asChild variant="outline" className="w-fit">
                 <Link href="/calendar">
-                  View all
+                  {t("monthlyPlan.viewAll")}
                   <ArrowRight data-icon="inline-end" />
                 </Link>
               </Button>
@@ -90,7 +92,7 @@ export default async function DashboardPage() {
                 <Link
                   key={post.id}
                   href={`/post/${post.id}`}
-                  className="flex flex-col gap-3 rounded-xl border border-border bg-background p-4 transition-colors hover:bg-accent/40 sm:flex-row sm:items-center sm:justify-between"
+                  className="flex min-w-0 flex-col gap-3 rounded-xl border border-border bg-background p-4 transition-colors hover:bg-accent/40 sm:flex-row sm:items-center sm:justify-between"
                 >
                   <div className="min-w-0">
                     <p className="truncate text-sm font-semibold text-foreground">{post.title}</p>
@@ -98,7 +100,7 @@ export default async function DashboardPage() {
                       {post.scheduledDate} · {post.format} · {post.goal}
                     </p>
                   </div>
-                  <div className="flex shrink-0 items-center gap-2">
+                  <div className="flex w-fit shrink-0 flex-wrap items-center gap-2">
                     <PlatformPill platform={post.primaryPlatform} />
                     <StatusBadge status={post.status} />
                   </div>
@@ -107,13 +109,13 @@ export default async function DashboardPage() {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
-            <h2 className="text-base font-semibold text-foreground">Account DNA</h2>
+          <div className="min-w-0 rounded-2xl border border-border bg-card p-5 shadow-sm">
+            <h2 className="text-base font-semibold text-foreground">{t("accountDna.title")}</h2>
             <dl className="mt-4 grid gap-4 text-sm">
-              <InfoRow label="Niche" value={summary.profile.niche} />
-              <InfoRow label="Audience" value={summary.profile.audience} />
-              <InfoRow label="Cadence" value={summary.profile.cadence} />
-              <InfoRow label="Tone" value={summary.profile.tone} />
+              <InfoRow label={t("accountDna.niche")} value={summary.profile.niche} />
+              <InfoRow label={t("accountDna.audience")} value={summary.profile.audience} />
+              <InfoRow label={t("accountDna.cadence")} value={summary.profile.cadence} />
+              <InfoRow label={t("accountDna.tone")} value={summary.profile.tone} />
             </dl>
             <div className="mt-4 flex flex-wrap gap-2">
               {summary.profile.platforms.map((platform) => (
@@ -123,10 +125,10 @@ export default async function DashboardPage() {
           </div>
         </section>
 
-        <section className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+        <section className="min-w-0 rounded-2xl border border-border bg-card p-5 shadow-sm">
           <div className="flex items-center gap-2">
             <Workflow className="h-5 w-5 text-primary" />
-            <h2 className="text-base font-semibold text-foreground">Workflow Board</h2>
+            <h2 className="text-base font-semibold text-foreground">{t("workflow.title")}</h2>
           </div>
           <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-5">
             {statusCounts.map((column) => (
@@ -145,7 +147,7 @@ export default async function DashboardPage() {
                     ))
                   ) : (
                     <div className="rounded-lg border border-dashed border-border p-3 text-xs text-muted-foreground">
-                      No posts in this stage.
+                      {t("workflow.emptyStage")}
                     </div>
                   )}
                 </div>
@@ -155,10 +157,10 @@ export default async function DashboardPage() {
         </section>
 
         <section className="grid gap-5 lg:grid-cols-2">
-          <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+          <div className="min-w-0 rounded-2xl border border-border bg-card p-5 shadow-sm">
             <div className="flex items-center gap-2">
               <Target className="h-5 w-5 text-primary" />
-              <h2 className="text-base font-semibold text-foreground">Next-cycle Insights</h2>
+              <h2 className="text-base font-semibold text-foreground">{t("insights.title")}</h2>
             </div>
             <div className="mt-4 grid gap-3">
               {summary.insights.map((insight) => (
@@ -169,16 +171,16 @@ export default async function DashboardPage() {
               ))}
             </div>
           </div>
-          <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+          <div className="min-w-0 rounded-2xl border border-border bg-card p-5 shadow-sm">
             <div className="flex items-center gap-2">
               <CheckCircle2 className="h-5 w-5 text-success" />
-              <h2 className="text-base font-semibold text-foreground">Service Readiness</h2>
+              <h2 className="text-base font-semibold text-foreground">{t("readiness.title")}</h2>
             </div>
             <div className="mt-4 grid gap-3 text-sm">
-              <ReadinessItem label="Demo workspace" value="Ready without signup" />
-              <ReadinessItem label="DynamoDB" value="Repository boundary with demo fallback" />
-              <ReadinessItem label="OpenAI-compatible AI" value="Validated JSON with fallback" />
-              <ReadinessItem label="S3 and Resend" value="Server-side smoke endpoints" />
+              <ReadinessItem label={t("readiness.demoWorkspace")} value={t("readiness.readyWithoutSignup")} />
+              <ReadinessItem label={t("readiness.dynamodb")} value={t("readiness.repositoryBoundary")} />
+              <ReadinessItem label={t("readiness.ai")} value={t("readiness.validatedFallback")} />
+              <ReadinessItem label={t("readiness.integrations")} value={t("readiness.serverSmoke")} />
             </div>
           </div>
         </section>

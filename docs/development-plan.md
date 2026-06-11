@@ -72,9 +72,9 @@ Completed (backend pipeline):
 
 Pending (frontend UI layer):
 
-- Create `middleware.ts` at project root using `clerkMiddleware()` to protect authenticated routes while keeping the demo path and public pages accessible.
+- Create `proxy.ts` at project root using `clerkMiddleware()` to protect authenticated routes while keeping the demo path and public pages accessible.
 - Create `/sign-in` and `/sign-up` routes with Clerk `<SignIn />` and `<SignUp />` components.
-- Replace the static "AC" avatar placeholder in `topbar.tsx` with Clerk `<UserButton />`, conditionally showing a "Sign in" link when the user is unauthenticated.
+- Replace the static avatar placeholder in `topbar.tsx` with Clerk `<UserButton />`, conditionally showing a "Sign in" link when the user is unauthenticated.
 - Ensure the demo path (`DEMO#judge` workspace) remains fully functional when Clerk environment variables are absent.
 
 Acceptance criteria:

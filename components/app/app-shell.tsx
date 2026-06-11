@@ -1,4 +1,8 @@
-import { Menu, Sparkles } from "lucide-react"
+"use client"
+
+import { Menu, Sparkles, X } from "lucide-react"
+import { useId, useState } from "react"
+import { useTranslations } from "next-intl"
 import { Sidebar } from "@/components/dashboard/sidebar"
 
 export function AppShell({
@@ -6,6 +10,10 @@ export function AppShell({
 }: {
   children: React.ReactNode
 }) {
+  const t = useTranslations("shell")
+  const [menuOpen, setMenuOpen] = useState(false)
+  const mobileNavId = useId()
+
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto flex max-w-[1600px]">
@@ -22,12 +30,30 @@ export function AppShell({
               <span className="text-lg font-semibold tracking-tight text-foreground">CreatorOS</span>
             </div>
             <button
-              aria-label="Open menu"
+              type="button"
+              aria-controls={mobileNavId}
+              aria-expanded={menuOpen}
+              aria-label={menuOpen ? t("closeMenu") : t("openMenu")}
+              onClick={() => setMenuOpen((open) => !open)}
               className="flex h-10 w-10 items-center justify-center rounded-lg border border-border bg-card text-muted-foreground"
             >
-              <Menu className="h-5 w-5" />
+              {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
           </div>
+
+          {menuOpen ? (
+            <div className="lg:hidden">
+              <button
+                type="button"
+                aria-label={t("closeMenu")}
+                className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm"
+                onClick={() => setMenuOpen(false)}
+              />
+              <div id={mobileNavId} className="fixed inset-y-0 left-0 z-50 w-72 max-w-[85vw] shadow-xl">
+                <Sidebar onNavigate={() => setMenuOpen(false)} />
+              </div>
+            </div>
+          ) : null}
 
           {children}
         </main>

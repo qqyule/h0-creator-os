@@ -1,11 +1,10 @@
- "use client"
+"use client"
 
 import {
   BarChart3,
   CalendarDays,
   ChevronRight,
   FileText,
-  Globe,
   LayoutDashboard,
   Lightbulb,
   Settings,
@@ -14,6 +13,8 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { useTranslations } from "next-intl"
+import { LocaleSwitcher } from "@/components/app/locale-switcher"
 import { navItems } from "@/lib/dashboard-data"
 import { cn } from "@/lib/utils"
 
@@ -27,8 +28,9 @@ const iconMap = {
   settings: Settings,
 }
 
-export function Sidebar() {
+export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname()
+  const t = useTranslations("shell")
 
   return (
     <aside className="flex h-full w-full flex-col gap-6 border-r border-sidebar-border bg-sidebar px-4 py-6">
@@ -38,15 +40,13 @@ export function Sidebar() {
           <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground">
             <Sparkles className="h-5 w-5" />
           </span>
-          <span className="text-lg font-semibold tracking-tight text-foreground">CreatorOS</span>
+          <span className="text-lg font-semibold tracking-tight text-foreground">{t("brand")}</span>
         </div>
-        <p className="mt-3 text-pretty text-sm leading-relaxed text-muted-foreground">
-          Plan, adapt, and ship your next 30 posts.
-        </p>
+        <p className="mt-3 text-pretty text-sm leading-relaxed text-muted-foreground">{t("tagline")}</p>
       </div>
 
       {/* Nav */}
-      <nav className="flex flex-1 flex-col gap-1">
+      <nav className="flex flex-1 flex-col gap-1" aria-label={t("navLabel")}>
         {navItems.map((item) => {
           const Icon = iconMap[item.icon]
           const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href)
@@ -54,6 +54,7 @@ export function Sidebar() {
             <Link
               key={item.id}
               href={item.href}
+              onClick={onNavigate}
               aria-current={active ? "page" : undefined}
               className={cn(
                 "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
@@ -63,7 +64,7 @@ export function Sidebar() {
               )}
             >
               <Icon className="h-[18px] w-[18px]" />
-              {item.label}
+              {t(`nav.${item.id}`)}
             </Link>
           )
         })}
@@ -71,20 +72,15 @@ export function Sidebar() {
 
       {/* Footer */}
       <div className="flex flex-col gap-3">
-        <button className="flex items-center gap-2.5 rounded-lg border border-border px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:text-foreground">
-          <Globe className="h-[18px] w-[18px]" />
-          <span>
-            English <span className="text-muted-foreground/60">/</span> 中文
-          </span>
-        </button>
+        <LocaleSwitcher />
 
         <button className="flex items-center gap-3 rounded-xl border border-border bg-card px-3 py-2.5 text-left transition-colors hover:bg-accent/40">
           <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/15 text-sm font-semibold text-primary">
             Y
           </span>
           <span className="min-w-0 flex-1">
-            <span className="block truncate text-sm font-semibold text-foreground">Acme Creators</span>
-            <span className="block text-xs text-muted-foreground">Pro Plan</span>
+            <span className="block truncate text-sm font-semibold text-foreground">{t("workspace.name")}</span>
+            <span className="block text-xs text-muted-foreground">{t("workspace.plan")}</span>
           </span>
           <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
         </button>

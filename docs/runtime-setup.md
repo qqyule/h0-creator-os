@@ -1,6 +1,6 @@
 # Runtime Setup
 
-Last updated: 2026-06-10
+Last updated: 2026-06-11
 
 This note documents the external resources needed after the P0 demo fallback is working locally. Do not commit real secrets or private account details.
 
@@ -11,6 +11,7 @@ Use `.env.example` as the non-secret template.
 Required for authenticated or persisted runtime:
 
 - Clerk: `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`
+- Clerk custom pages: `NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in`, `NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up`, and dashboard fallback redirect URLs
 - Admin-only smoke/settings endpoints: `CREATOROS_ADMIN_CLERK_USER_IDS`
 - DynamoDB: `AWS_REGION`, `CREATOROS_TABLE_NAME`
 - S3: `CREATOROS_S3_BUCKET`
@@ -19,6 +20,10 @@ Required for authenticated or persisted runtime:
 - AI settings page secret storage: `AI_CONFIG_ENCRYPTION_KEY`
 
 When these are missing, the app keeps the judge path usable through deterministic `DEMO#judge` fallback data.
+
+`proxy.ts` protects `/settings` only when both Clerk public and secret keys are configured. The main judge path (`/dashboard`, `/onboarding`, `/calendar`, `/post/[id]`, and `/analytics`) remains public and demo-safe.
+
+The UI uses `next-intl` with `en-US` as the default locale and `zh-CN` as the secondary locale. Locale choice is stored in the `creatoros-locale` cookie.
 
 `CREATOROS_ADMIN_CLERK_USER_IDS` is a comma-separated allowlist of Clerk user IDs that can call AI settings, S3 presign, and Resend smoke endpoints. If it is missing, those admin endpoints return `403`.
 
@@ -53,6 +58,12 @@ AWS_REGION=us-east-1 CREATOROS_TABLE_NAME=creatoros-prod-content pnpm exec node 
 The script writes deterministic `DEMO#judge` profile, plan, posts, and platform variants. It does not create the table.
 
 ## Smoke Checks
+
+Local read-only smoke for the main judge path:
+
+```bash
+CREATOROS_BASE_URL=http://localhost:3000 pnpm smoke:main-path
+```
 
 After resource configuration, verify:
 

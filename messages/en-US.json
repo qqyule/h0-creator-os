@@ -2,5 +2,297 @@
   "app": {
     "name": "CreatorOS",
     "tagline": "Plan, adapt, and ship your next 30 posts."
+  },
+  "shell": {
+    "brand": "CreatorOS",
+    "tagline": "Plan, adapt, and ship your next 30 posts.",
+    "openMenu": "Open navigation menu",
+    "closeMenu": "Close navigation menu",
+    "navLabel": "Primary navigation",
+    "nav": {
+      "dashboard": "Dashboard",
+      "onboarding": "Account DNA",
+      "calendar": "Calendar",
+      "workflow": "Post Workflow",
+      "analytics": "Analytics",
+      "settings": "Settings"
+    },
+    "workspace": {
+      "name": "Acme Creators",
+      "plan": "Pro Plan"
+    },
+    "locale": {
+      "label": "Language"
+    },
+    "topbar": {
+      "title": "Good morning, Team",
+      "description": "Here's what's happening with your content today.",
+      "searchPlaceholder": "Search posts, ideas, or templates...",
+      "searchLabel": "Search",
+      "notifications": "Notifications"
+    },
+    "auth": {
+      "demoMode": "Demo mode",
+      "signIn": "Sign in"
+    }
+  },
+  "theme": {
+    "system": "System",
+    "light": "Light",
+    "dark": "Dark",
+    "switch": "Switch theme",
+    "systemAria": "Theme: System. Click to switch theme.",
+    "systemTitle": "Theme: System",
+    "toggleAria": "Theme: {current}. Click to switch to {next}.",
+    "title": "Theme: {current}",
+    "titleWithResolved": "Theme: {current} ({resolved})"
+  },
+  "auth": {
+    "signIn": {
+      "eyebrow": "CreatorOS account",
+      "title": "Sign in to your workspace",
+      "description": "Use Clerk to access your authenticated workspace. Judges can still open the demo path without creating an account.",
+      "demoLink": "Continue with demo workspace",
+      "unconfiguredTitle": "Clerk is not configured",
+      "unconfiguredDescription": "The authenticated sign-in flow needs a Clerk publishable key. The demo workspace remains available."
+    },
+    "signUp": {
+      "eyebrow": "CreatorOS account",
+      "title": "Create your workspace",
+      "description": "Create a Clerk-backed workspace for your own content operations data. The public judge demo remains available without signup.",
+      "demoLink": "Continue with demo workspace",
+      "unconfiguredTitle": "Clerk is not configured",
+      "unconfiguredDescription": "The sign-up flow needs a Clerk publishable key. Use the demo workspace until Clerk resources are connected."
+    }
+  },
+  "dashboard": {
+    "hero": {
+      "eyebrow": "Judge demo workspace",
+      "title": "CreatorOS command center",
+      "description": "Plan, adapt, publish, measure, and feed the next 30-day cycle from one workspace.",
+      "updateDna": "Update Account DNA",
+      "openCalendar": "Open Calendar"
+    },
+    "metrics": {
+      "plannedPosts": "Planned posts",
+      "publishedViews": "Published views",
+      "engagements": "Engagements",
+      "followersGained": "Followers gained",
+      "demoMetrics": "From demo metrics",
+      "likesTracked": "Likes tracked manually",
+      "feedbackLoop": "Feedback loop input"
+    },
+    "monthlyPlan": {
+      "title": "Monthly Plan",
+      "viewAll": "View all"
+    },
+    "accountDna": {
+      "title": "Account DNA",
+      "niche": "Niche",
+      "audience": "Audience",
+      "cadence": "Cadence",
+      "tone": "Tone"
+    },
+    "workflow": {
+      "title": "Workflow Board",
+      "emptyStage": "No posts in this stage."
+    },
+    "insights": {
+      "title": "Next-cycle Insights"
+    },
+    "readiness": {
+      "title": "Service Readiness",
+      "demoWorkspace": "Demo workspace",
+      "readyWithoutSignup": "Ready without signup",
+      "dynamodb": "DynamoDB",
+      "repositoryBoundary": "Repository boundary with demo fallback",
+      "ai": "OpenAI-compatible AI",
+      "validatedFallback": "Validated JSON with fallback",
+      "integrations": "S3 and Resend",
+      "serverSmoke": "Server-side smoke endpoints"
+    }
+  },
+  "onboarding": {
+    "eyebrow": "Onboarding",
+    "title": "Set the account DNA",
+    "description": "The demo path starts here: positioning context becomes a 30-day plan, then platform rewrites and insights.",
+    "continue": "Continue to plan",
+    "demoSafe": {
+      "title": "Demo-safe behavior",
+      "demoWorkspace": "Unauthenticated judges use the isolated DEMO#judge workspace.",
+      "dynamoFallback": "When DynamoDB is unconfigured, the server returns deterministic demo data instead of blocking the flow.",
+      "userWorkspace": "Real Clerk user workspaces use USER#clerkUserId after Clerk resources are configured."
+    }
+  },
+  "accountDnaForm": {
+    "title": "Account DNA",
+    "description": "This context powers the monthly plan and platform rewrites.",
+    "fields": {
+      "niche": "Niche",
+      "audience": "Audience",
+      "platforms": "Platforms",
+      "cadence": "Cadence",
+      "tone": "Tone",
+      "goals": "Goals"
+    },
+    "goalsHint": "One goal per line, or comma-separated.",
+    "save": "Save Account DNA",
+    "saving": "Saving and generating...",
+    "messages": {
+      "generatingPlan": "Account DNA saved. Generating the 30-day plan..."
+    },
+    "errors": {
+      "platformRequired": "Select at least one platform.",
+      "saveFailed": "Account DNA could not be saved.",
+      "planFailed": "Monthly plan could not be generated.",
+      "unexpected": "Onboarding could not be completed. Try again."
+    }
+  },
+  "calendar": {
+    "eyebrow": "30-day planning view",
+    "openFirstPost": "Open first post",
+    "calendarTitle": "June 2026 Calendar",
+    "plannedPosts": "{count} planned posts",
+    "empty": {
+      "title": "No posts planned yet.",
+      "description": "Generate a monthly plan from Account DNA to fill the calendar."
+    }
+  },
+  "post": {
+    "backToCalendar": "Back to calendar",
+    "date": "Date",
+    "goal": "Goal",
+    "outline": "Outline"
+  },
+  "postActions": {
+    "rewrite": {
+      "title": "Platform Rewrite",
+      "description": "Adapt the same idea for each channel without changing the source post.",
+      "generate": "Generate rewrite",
+      "platformGroup": "Choose platform rewrite target",
+      "characterCount": "{count} characters",
+      "messages": {
+        "generated": "Rewrite generated with {source}."
+      },
+      "errors": {
+        "generateFailed": "Rewrite could not be generated."
+      },
+      "empty": {
+        "title": "No rewrite for this platform yet.",
+        "description": "Generate a validated variant to keep it tied to this post."
+      }
+    },
+    "status": {
+      "title": "Workflow Status",
+      "description": "Version {version}; status writes use conflict-aware payloads.",
+      "statusGroup": "Workflow status options",
+      "messages": {
+        "updated": "Status update accepted through the server boundary."
+      },
+      "errors": {
+        "updateFailed": "Status could not be updated."
+      }
+    },
+    "metrics": {
+      "title": "Manual Metrics",
+      "save": "Save metrics",
+      "fields": {
+        "views": "Views",
+        "likes": "Likes",
+        "comments": "Comments",
+        "saves": "Saves",
+        "followersGained": "Followers gained"
+      },
+      "messages": {
+        "saved": "Metric saved in {mode} mode."
+      },
+      "errors": {
+        "saveFailed": "Metric could not be saved."
+      },
+      "metricSummary": {
+        "views": "{views} views",
+        "likes": "{likes} likes",
+        "saves": "{saves} saves"
+      },
+      "empty": "No metrics recorded for this post yet."
+    },
+    "draft": {
+      "title": "Draft",
+      "generate": "Generate draft",
+      "messages": {
+        "generated": "Draft version {version} generated."
+      },
+      "errors": {
+        "generateFailed": "Draft could not be generated."
+      }
+    }
+  },
+  "analytics": {
+    "eyebrow": "Feedback loop",
+    "title": "Analytics and insights",
+    "description": "Manual metrics feed the next planning cycle. CSV import is represented through a server-side S3 presign boundary.",
+    "importBoundary": "Import boundary",
+    "exportCsv": "Export CSV",
+    "metrics": {
+      "views": "Views",
+      "likes": "Likes",
+      "comments": "Comments",
+      "saves": "Saves",
+      "followers": "Followers"
+    },
+    "topPosts": "Top posts by views",
+    "viewsValue": "{views} views",
+    "storedInsights": "Stored Insights",
+    "emptyMetrics": {
+      "title": "No metrics yet.",
+      "description": "Add manual metrics on a post detail page."
+    }
+  },
+  "insightGenerator": {
+    "title": "Generate Next-cycle Insight",
+    "description": "Uses the current plan and manual metrics, with fallback if AI is unconfigured.",
+    "generate": "Generate insight",
+    "messages": {
+      "generated": "Insight generated with {source}."
+    },
+    "errors": {
+      "generateFailed": "Insight could not be generated."
+    }
+  },
+  "settings": {
+    "eyebrow": "Settings",
+    "title": "AI Provider",
+    "description": "Configure the OpenAI-compatible endpoint used by future planning, rewrite, draft, and insight workflows. Secrets stay on the server and are never sent back to the browser."
+  },
+  "aiSettings": {
+    "title": "OpenAI-compatible provider",
+    "description": "Configure a provider once for the global admin workspace. Leave the API key field blank to keep the saved key.",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "fields": {
+      "baseUrl": "Base URL",
+      "model": "Model",
+      "apiKey": "API Key"
+    },
+    "placeholders": {
+      "keepKey": "Leave blank to keep saved key"
+    },
+    "keySummary": {
+      "newKey": "New key will replace the saved key when you save.",
+      "configured": "Configured: {hint}",
+      "masked": "masked",
+      "empty": "No API key saved."
+    },
+    "enableLabel": "Enable AI provider",
+    "enableDescription": "When disabled, future generation flows should use demo or mock fallback instead of blocking the MVP path.",
+    "testConnection": "Test connection",
+    "saveSettings": "Save settings",
+    "messages": {
+      "saved": "AI provider settings saved.",
+      "verified": "Connection verified with {model}."
+    },
+    "errors": {
+      "unexpectedResponse": "Unexpected response from server."
+    }
   }
 }

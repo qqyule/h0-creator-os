@@ -2,5 +2,297 @@
   "app": {
     "name": "CreatorOS",
     "tagline": "规划、改写并发布你的下一个 30 条内容。"
+  },
+  "shell": {
+    "brand": "CreatorOS",
+    "tagline": "规划、改写并发布你的下一个 30 条内容。",
+    "openMenu": "打开导航菜单",
+    "closeMenu": "关闭导航菜单",
+    "navLabel": "主导航",
+    "nav": {
+      "dashboard": "仪表盘",
+      "onboarding": "账号 DNA",
+      "calendar": "日历",
+      "workflow": "内容流程",
+      "analytics": "数据分析",
+      "settings": "设置"
+    },
+    "workspace": {
+      "name": "Acme Creators",
+      "plan": "Pro Plan"
+    },
+    "locale": {
+      "label": "语言"
+    },
+    "topbar": {
+      "title": "早上好，Team",
+      "description": "这是今天内容运营的最新状态。",
+      "searchPlaceholder": "搜索内容、想法或模板...",
+      "searchLabel": "搜索",
+      "notifications": "通知"
+    },
+    "auth": {
+      "demoMode": "演示模式",
+      "signIn": "登录"
+    }
+  },
+  "theme": {
+    "system": "跟随系统",
+    "light": "浅色",
+    "dark": "深色",
+    "switch": "切换主题",
+    "systemAria": "主题：跟随系统。点击切换主题。",
+    "systemTitle": "主题：跟随系统",
+    "toggleAria": "主题：{current}。点击切换到 {next}。",
+    "title": "主题：{current}",
+    "titleWithResolved": "主题：{current}（当前为 {resolved}）"
+  },
+  "auth": {
+    "signIn": {
+      "eyebrow": "CreatorOS 账号",
+      "title": "登录你的工作区",
+      "description": "通过 Clerk 进入已认证工作区。评审仍可无需注册直接打开演示路径。",
+      "demoLink": "继续使用演示工作区",
+      "unconfiguredTitle": "Clerk 尚未配置",
+      "unconfiguredDescription": "认证登录流程需要 Clerk publishable key。演示工作区仍可使用。"
+    },
+    "signUp": {
+      "eyebrow": "CreatorOS 账号",
+      "title": "创建你的工作区",
+      "description": "创建一个 Clerk 支持的工作区，用于保存你自己的内容运营数据。公开评审演示无需注册。",
+      "demoLink": "继续使用演示工作区",
+      "unconfiguredTitle": "Clerk 尚未配置",
+      "unconfiguredDescription": "注册流程需要 Clerk publishable key。在连接 Clerk 资源前可先使用演示工作区。"
+    }
+  },
+  "dashboard": {
+    "hero": {
+      "eyebrow": "评审演示工作区",
+      "title": "CreatorOS 指挥中心",
+      "description": "在一个工作区中完成规划、改写、发布、度量，并反哺下一个 30 天周期。",
+      "updateDna": "更新账号 DNA",
+      "openCalendar": "打开日历"
+    },
+    "metrics": {
+      "plannedPosts": "已规划内容",
+      "publishedViews": "已发布浏览量",
+      "engagements": "互动量",
+      "followersGained": "新增关注",
+      "demoMetrics": "来自演示指标",
+      "likesTracked": "手动记录点赞",
+      "feedbackLoop": "反馈闭环输入"
+    },
+    "monthlyPlan": {
+      "title": "月度计划",
+      "viewAll": "查看全部"
+    },
+    "accountDna": {
+      "title": "账号 DNA",
+      "niche": "定位",
+      "audience": "受众",
+      "cadence": "节奏",
+      "tone": "语气"
+    },
+    "workflow": {
+      "title": "流程看板",
+      "emptyStage": "此阶段暂无内容。"
+    },
+    "insights": {
+      "title": "下周期洞察"
+    },
+    "readiness": {
+      "title": "服务就绪状态",
+      "demoWorkspace": "演示工作区",
+      "readyWithoutSignup": "无需注册即可使用",
+      "dynamodb": "DynamoDB",
+      "repositoryBoundary": "Repository 边界与演示降级",
+      "ai": "OpenAI-compatible AI",
+      "validatedFallback": "JSON 校验与降级",
+      "integrations": "S3 和 Resend",
+      "serverSmoke": "服务端 smoke 入口"
+    }
+  },
+  "onboarding": {
+    "eyebrow": "Onboarding",
+    "title": "设置账号 DNA",
+    "description": "演示路径从这里开始：定位上下文会变成 30 天计划，再进入平台改写和洞察。",
+    "continue": "继续到计划",
+    "demoSafe": {
+      "title": "演示安全行为",
+      "demoWorkspace": "未登录评审使用隔离的 DEMO#judge 工作区。",
+      "dynamoFallback": "未配置 DynamoDB 时，服务端返回确定性的演示数据，不阻塞流程。",
+      "userWorkspace": "配置 Clerk 后，真实用户工作区使用 USER#clerkUserId。"
+    }
+  },
+  "accountDnaForm": {
+    "title": "账号 DNA",
+    "description": "这些上下文会驱动月度计划和平台改写。",
+    "fields": {
+      "niche": "定位",
+      "audience": "受众",
+      "platforms": "平台",
+      "cadence": "节奏",
+      "tone": "语气",
+      "goals": "目标"
+    },
+    "goalsHint": "每行一个目标，也可以用逗号分隔。",
+    "save": "保存账号 DNA",
+    "saving": "正在保存并生成...",
+    "messages": {
+      "generatingPlan": "账号 DNA 已保存，正在生成 30 天计划..."
+    },
+    "errors": {
+      "platformRequired": "请至少选择一个平台。",
+      "saveFailed": "账号 DNA 保存失败。",
+      "planFailed": "月度计划生成失败。",
+      "unexpected": "Onboarding 未完成，请重试。"
+    }
+  },
+  "calendar": {
+    "eyebrow": "30 天规划视图",
+    "openFirstPost": "打开第一条内容",
+    "calendarTitle": "2026 年 6 月日历",
+    "plannedPosts": "{count} 条已规划内容",
+    "empty": {
+      "title": "还没有规划内容。",
+      "description": "从账号 DNA 生成月度计划即可填充日历。"
+    }
+  },
+  "post": {
+    "backToCalendar": "返回日历",
+    "date": "日期",
+    "goal": "目标",
+    "outline": "大纲"
+  },
+  "postActions": {
+    "rewrite": {
+      "title": "平台改写",
+      "description": "在不改变原始内容的前提下，为每个平台适配表达。",
+      "generate": "生成改写",
+      "platformGroup": "选择平台改写目标",
+      "characterCount": "{count} 字符",
+      "messages": {
+        "generated": "已通过 {source} 生成改写。"
+      },
+      "errors": {
+        "generateFailed": "改写生成失败。"
+      },
+      "empty": {
+        "title": "这个平台还没有改写。",
+        "description": "生成通过校验的版本，并保持它和原始内容关联。"
+      }
+    },
+    "status": {
+      "title": "流程状态",
+      "description": "版本 {version}；状态写入使用冲突感知 payload。",
+      "statusGroup": "流程状态选项",
+      "messages": {
+        "updated": "状态更新已通过服务端边界接收。"
+      },
+      "errors": {
+        "updateFailed": "状态更新失败。"
+      }
+    },
+    "metrics": {
+      "title": "手动指标",
+      "save": "保存指标",
+      "fields": {
+        "views": "浏览量",
+        "likes": "点赞",
+        "comments": "评论",
+        "saves": "收藏",
+        "followersGained": "新增关注"
+      },
+      "messages": {
+        "saved": "指标已保存到 {mode} 模式。"
+      },
+      "errors": {
+        "saveFailed": "指标保存失败。"
+      },
+      "metricSummary": {
+        "views": "{views} 次浏览",
+        "likes": "{likes} 点赞",
+        "saves": "{saves} 收藏"
+      },
+      "empty": "这条内容还没有记录指标。"
+    },
+    "draft": {
+      "title": "草稿",
+      "generate": "生成草稿",
+      "messages": {
+        "generated": "草稿版本 {version} 已生成。"
+      },
+      "errors": {
+        "generateFailed": "草稿生成失败。"
+      }
+    }
+  },
+  "analytics": {
+    "eyebrow": "反馈闭环",
+    "title": "数据分析与洞察",
+    "description": "手动指标会反哺下一轮规划。CSV 导入通过服务端 S3 presign 边界表达。",
+    "importBoundary": "导入边界",
+    "exportCsv": "导出 CSV",
+    "metrics": {
+      "views": "浏览量",
+      "likes": "点赞",
+      "comments": "评论",
+      "saves": "收藏",
+      "followers": "关注"
+    },
+    "topPosts": "按浏览量排序的内容",
+    "viewsValue": "{views} 次浏览",
+    "storedInsights": "已保存洞察",
+    "emptyMetrics": {
+      "title": "暂无指标。",
+      "description": "可以在内容详情页添加手动指标。"
+    }
+  },
+  "insightGenerator": {
+    "title": "生成下周期洞察",
+    "description": "使用当前计划和手动指标；AI 未配置时会降级。",
+    "generate": "生成洞察",
+    "messages": {
+      "generated": "已通过 {source} 生成洞察。"
+    },
+    "errors": {
+      "generateFailed": "洞察生成失败。"
+    }
+  },
+  "settings": {
+    "eyebrow": "设置",
+    "title": "AI Provider",
+    "description": "配置未来规划、改写、草稿和洞察流程使用的 OpenAI-compatible endpoint。密钥只保存在服务端，不会返回浏览器。"
+  },
+  "aiSettings": {
+    "title": "OpenAI-compatible provider",
+    "description": "为全局管理工作区配置一次 provider。API key 留空会保留已保存的密钥。",
+    "enabled": "已启用",
+    "disabled": "已停用",
+    "fields": {
+      "baseUrl": "Base URL",
+      "model": "模型",
+      "apiKey": "API Key"
+    },
+    "placeholders": {
+      "keepKey": "留空以保留已保存密钥"
+    },
+    "keySummary": {
+      "newKey": "保存后会用新密钥替换已保存密钥。",
+      "configured": "已配置：{hint}",
+      "masked": "已隐藏",
+      "empty": "尚未保存 API key。"
+    },
+    "enableLabel": "启用 AI provider",
+    "enableDescription": "停用时，后续生成流程会使用演示或 mock 降级，不阻塞 MVP 路径。",
+    "testConnection": "测试连接",
+    "saveSettings": "保存设置",
+    "messages": {
+      "saved": "AI provider 设置已保存。",
+      "verified": "已通过 {model} 验证连接。"
+    },
+    "errors": {
+      "unexpectedResponse": "服务端返回异常。"
+    }
   }
 }

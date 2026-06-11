@@ -1,6 +1,6 @@
 # TODO List
 
-Last updated: 2026-06-10
+Last updated: 2026-06-11
 
 This checklist is ordered around the MVP golden path:
 
@@ -85,21 +85,21 @@ This checklist is ordered around the MVP golden path:
 
 ### Clerk Frontend Completion
 
-- [ ] Create `middleware.ts` at project root with `clerkMiddleware()` to protect authenticated routes while keeping demo and public pages accessible.
-- [ ] Create `/sign-in` and `/sign-up` routes with Clerk `<SignIn />` and `<SignUp />` components.
-- [ ] Replace static "AC" avatar in `topbar.tsx` with Clerk `<UserButton />` and conditional "Sign in" link for unauthenticated users.
-- [ ] Verify the demo path remains fully functional when `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` is absent.
+- [x] Create `proxy.ts` at project root with `clerkMiddleware()` to protect authenticated routes while keeping demo and public pages accessible.
+- [x] Create `/sign-in` and `/sign-up` routes with Clerk `<SignIn />` and `<SignUp />` components.
+- [x] Replace static avatar in `topbar.tsx` with Clerk `<UserButton />`, conditional "Sign in" link, and demo fallback for unconfigured Clerk.
+- [x] Verify the demo path remains fully functional when `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` is absent.
 
 ### General Quality
 
 - [x] Add next-intl with `en-US` as default and `zh-CN` as secondary locale.
-- [ ] Move user-facing copy into locale message files after route structure stabilizes.
+- [x] Move main-path user-facing copy into locale message files after route structure stabilizes.
 - [x] Add typed API response helpers using the `ok/data/error/traceId` shape.
 - [x] Add consistent server-side error categories for AI, database, storage, and notification failures.
-- [ ] Add lightweight smoke coverage after test scripts are introduced.
-- [ ] Improve accessibility for keyboard navigation, form labels, focus states, and errors.
-- [ ] Review LCP, INP, and CLS for the demo path after the UI stabilizes.
-- [ ] Keep public copy English-first and avoid Chinese-only judge-facing explanations.
+- [x] Add lightweight smoke coverage after test scripts are introduced.
+- [x] Improve accessibility for keyboard navigation, form labels, focus states, and errors.
+- [x] Review LCP, INP, and CLS risk for the demo path after the UI stabilizes; real field metrics still require deployed traffic.
+- [x] Keep public copy English-first and avoid Chinese-only judge-facing explanations.
 
 ## P1.5 - Public Metrics Sync (No-Auth Data Feedback)
 
@@ -161,10 +161,10 @@ This checklist is ordered around the MVP golden path:
 
 - [ ] Re-check official H0 rules and resources before final submission.
 - [ ] Deploy the production Vercel URL.
-- [ ] Verify guest/demo workspace without private credentials.
-- [ ] Confirm Clerk login does not block the judge demo path.
+- [x] Verify guest/demo workspace without private credentials.
+- [x] Confirm Clerk login does not block the judge demo path.
 - [ ] Verify S3 flow without exposing bucket credentials.
-- [ ] Verify Resend smoke path with a safe test recipient or non-production route.
+- [x] Verify Resend smoke path with a safe test recipient or non-production route.
 - [ ] Reset or reseed demo data before recording and submission.
 - [ ] Freeze judge-facing navigation names before video recording.
 - [ ] Create architecture diagram with Browser, Vercel, AI service, DynamoDB, S3, Resend, Clerk, and deploy flow.
