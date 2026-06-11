@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { ArrowRight, CalendarDays, CheckCircle2, Sparkles, Target, Workflow } from "lucide-react"
-import { notFound } from "next/navigation"
+import { redirect } from "next/navigation"
 import { getTranslations } from "next-intl/server"
 import { AppShell } from "@/components/app/app-shell"
 import { PlatformPill } from "@/components/app/platform-pill"
@@ -19,7 +19,7 @@ export default async function DashboardPage() {
     summary = await getDashboardSummary(workspace.workspaceId, DEMO_MONTH)
   } catch (error) {
     if (error instanceof ContentNotFoundError) {
-      notFound()
+      redirect("/onboarding")
     }
 
     throw error

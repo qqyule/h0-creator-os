@@ -37,7 +37,7 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} bg-background`}
       suppressHydrationWarning
     >
-      <body className="font-sans antialiased">
+      <body className="font-sans antialiased" suppressHydrationWarning>
         {hasClerk ? <ClerkProvider>{content}</ClerkProvider> : content}
       </body>
     </html>
@@ -49,11 +49,11 @@ async function RootProviders({ children }: { children: React.ReactNode }) {
   const messages = await getMessages()
 
   return (
-    <NextIntlClientProvider locale={locale} messages={messages}>
-      <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+      <NextIntlClientProvider locale={locale} messages={messages}>
         {children}
         {process.env.NODE_ENV === 'production' && <Analytics />}
-      </ThemeProvider>
-    </NextIntlClientProvider>
+      </NextIntlClientProvider>
+    </ThemeProvider>
   )
 }
