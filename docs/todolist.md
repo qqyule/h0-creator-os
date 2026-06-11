@@ -69,7 +69,7 @@ This checklist is ordered around the MVP golden path:
 - [ ] Finalize the workspace-scoped single-table model in `docs/dynamodb-plan.md`.
 - [ ] Create separate dev and production DynamoDB table configuration.
 - [ ] Configure table keys: `pk`, `sk`, `gsi1pk`, `gsi1sk`, `gsi2pk`, and `gsi2sk`.
-- [ ] Use on-demand billing for the hackathon build.
+- [x] Use on-demand billing for the hackathon build.
 - [x] Define ElectroDB entities for Profile, MonthlyPlan, Post, PlatformVariant, DraftVersion, PostMetric, and Insight.
 - [x] Implement repository functions for profile, plan, post, variant, draft, status, metric, and insight access.
 - [x] Keep DynamoDB key construction inside entity or repository code.
@@ -100,6 +100,11 @@ This checklist is ordered around the MVP golden path:
 - [x] Improve accessibility for keyboard navigation, form labels, focus states, and errors.
 - [x] Review LCP, INP, and CLS risk for the demo path after the UI stabilizes; real field metrics still require deployed traffic.
 - [x] Keep public copy English-first and avoid Chinese-only judge-facing explanations.
+
+### Security & Serverless Hardening
+
+- [ ] Rename `proxy.ts` to `middleware.ts` at project root to ensure Clerk route protection is recognized and executed by Next.js.
+- [ ] Migrate AI Settings persistence from local `.creatoros/ai-settings.json` disk storage to DynamoDB (e.g. ProfileEntity or a new ConfigEntity) to resolve write errors and config loss in Vercel Serverless environment.
 
 ## P1.5 - Public Metrics Sync (No-Auth Data Feedback)
 
@@ -163,7 +168,7 @@ This checklist is ordered around the MVP golden path:
 - [ ] Deploy the production Vercel URL.
 - [x] Verify guest/demo workspace without private credentials.
 - [x] Confirm Clerk login does not block the judge demo path.
-- [ ] Verify S3 flow without exposing bucket credentials.
+- [x] Verify S3 flow without exposing bucket credentials.
 - [x] Verify Resend smoke path with a safe test recipient or non-production route.
 - [ ] Reset or reseed demo data before recording and submission.
 - [ ] Freeze judge-facing navigation names before video recording.

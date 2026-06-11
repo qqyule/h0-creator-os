@@ -52,5 +52,6 @@ Use this file to record concise development progress. Do not paste raw chat tran
 
 - Verification: `pnpm typecheck`, `pnpm lint`, `pnpm build`, and `CREATOROS_BASE_URL=http://localhost:3106 pnpm smoke:main-path` pass with local env loaded.
 - Passed: Resend smoke sent through the configured test recipient path; OpenAI-compatible chat completion returned HTTP 200 with `OPENAI_MODEL=gpt-5.4`; Browser smoke confirmed the public demo path, mobile navigation, locale switch, and `/settings` Clerk protection.
-- Blocked: DynamoDB and S3 probes both fail before resource access because the local AWS session is expired. `aws sts get-caller-identity --no-cli-pager` returns `Your session has expired. Please reauthenticate using 'aws login'.`
-- Next: Re-run DynamoDB/S3 smoke after refreshing the local AWS session.
+- Passed after AWS reauthentication: DynamoDB `DescribeTable` and demo workspace query succeeded; table status is `ACTIVE`, billing mode is `PAY_PER_REQUEST`, and demo items are visible. S3 smoke upload plus `HeadObject` succeeded for `smoke/creatoros-1781160812530.txt`.
+- Risk: The local AWS identity currently resolves to the account root ARN. Do not deploy root access keys to Vercel; create a dedicated least-privilege IAM runtime identity before production deployment.
+- Next: Create and verify a least-privilege IAM user or role for Vercel, then re-run DynamoDB/S3 smoke using that identity.

@@ -174,6 +174,17 @@ Acceptance criteria:
 - Parsing parses data correctly, displaying changes before saving to DynamoDB via ElectroDB repository methods.
 - Insight pages provide a "Generate Action Items" button, which successfully spawns tasks visible on the dashboard and calendar.
 
+### 5.8 Security & Serverless Hardening
+
+Address critical deployment and security design deviations identified during P0/P1 review.
+
+- Rename `proxy.ts` to `middleware.ts` at the project root to ensure Clerk route protection is properly recognized and executed by Next.js.
+- Migrate AI settings persistence from local `.creatoros/ai-settings.json` disk storage to DynamoDB (e.g. as part of ProfileEntity or a separate config model) to avoid write errors and settings loss in the read-only, stateless Vercel Serverless environment.
+
+Acceptance criteria:
+- Unauthenticated access to protected routes like `/settings` is correctly blocked and redirected by Next.js Middleware.
+- AI settings can be saved and retrieved successfully without any disk-write operations, resolving Vercel deployment compatibility.
+
 ### 6. Submission Hardening
 
 Stabilize the product and judging materials.
