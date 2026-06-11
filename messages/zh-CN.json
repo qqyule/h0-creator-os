@@ -143,6 +143,11 @@
     },
     "errors": {
       "platformRequired": "请至少选择一个平台。",
+      "fieldRequired": "{field}为必填项（至少 2 个字符）。",
+      "fieldMaxLength": "{field}不能超过 {max} 个字符。",
+      "goalsRequired": "请至少填写一个目标。",
+      "goalsMaxItems": "最多可填写 {max} 个目标。",
+      "goalItemMaxLength": "每个目标不能超过 {max} 个字符。",
       "saveFailed": "账号 DNA 保存失败。",
       "planFailed": "月度计划生成失败。",
       "unexpected": "Onboarding 未完成，请重试。"
@@ -180,6 +185,28 @@
       "empty": {
         "title": "这个平台还没有改写。",
         "description": "生成通过校验的版本，并保持它和原始内容关联。"
+      },
+      "preview": {
+        "title": "平台预览",
+        "unsupported": "YouTube 暂未提供视觉 mockup。此平台先使用原始改写文案。"
+      },
+      "hook": {
+        "title": "Hook 增强",
+        "description": "生成 3 个开头备选，并在本地套用一个更强的开场。",
+        "generate": "生成 Hook",
+        "messages": {
+          "generated": "已通过 {source} 生成 Hook 备选。",
+          "applied": "Hook 已在本地套用。若要完整持久化，请重新生成改写。"
+        },
+        "errors": {
+          "generateFailed": "Hook 备选生成失败。"
+        }
+      },
+      "tone": {
+        "title": "语气沙盒",
+        "description": "用指定语气重新生成当前平台版本。",
+        "selectLabel": "语气覆盖",
+        "apply": "应用语气"
       }
     },
     "status": {
@@ -211,7 +238,10 @@
           "synced": "YouTube 实时数据已保存到 {mode} 模式。"
         },
         "errors": {
-          "failed": "实时数据同步失败。"
+          "failed": "实时数据同步失败。",
+          "externalIdRequired": "请输入 YouTube video ID。",
+          "externalIdMaxLength": "YouTube video ID 不能超过 120 个字符。",
+          "invalidUrl": "请输入有效的 URL。"
         }
       },
       "fields": {
@@ -225,7 +255,8 @@
         "saved": "指标已保存到 {mode} 模式。"
       },
       "errors": {
-        "saveFailed": "指标保存失败。"
+        "saveFailed": "指标保存失败。",
+        "invalidMetric": "所有指标值必须为非负整数。"
       },
       "metricSummary": {
         "views": "{views} 次浏览",
@@ -310,7 +341,10 @@
       "verified": "已通过 {model} 验证连接。"
     },
     "errors": {
-      "unexpectedResponse": "服务端返回异常。"
+      "unexpectedResponse": "服务端返回异常。",
+      "baseUrlRequired": "Base URL 为必填项。",
+      "baseUrlInvalid": "请输入有效的 URL（需使用 HTTPS）。",
+      "modelRequired": "模型为必填项。"
     }
   }
 }

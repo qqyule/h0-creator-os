@@ -39,6 +39,8 @@ async function readJson<T>(response: Response, fallbackMessage: string): Promise
   }
 }
 
+type FieldErrors = Partial<Record<"baseUrl" | "model", string>>
+
 export function AiSettingsForm() {
   const t = useTranslations("aiSettings")
   const [settings, setSettings] = useState<PublicAiSettings>(emptySettings)
@@ -47,6 +49,7 @@ export function AiSettingsForm() {
   const [saving, setSaving] = useState(false)
   const [testing, setTesting] = useState(false)
   const [message, setMessage] = useState<{ tone: "success" | "error" | "info"; text: string } | null>(null)
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
 
   const keySummary = useMemo(() => {
     if (apiKey.trim()) {
@@ -86,7 +89,45 @@ export function AiSettingsForm() {
     }
   }, [t])
 
+  /** 清除单个字段的错误（在用户输入时调用） */
+  const handleClearFieldError = (field: keyof FieldErrors) => {
+    setFieldErrors((prev) => {
+      if (!prev[field]) return prev
+      const next = { ...prev }
+      delete next[field]
+      return next
+    })
+  }
+
+  /** 校验 baseUrl 和 model，返回是否通过 */
+  const validateSettings = (): boolean => {
+    const errors: FieldErrors = {}
+
+    const baseUrl = settings.baseUrl.trim().replace(/\/+$/, "")
+    if (!baseUrl) {
+      errors.baseUrl = t("errors.baseUrlRequired")
+    } else {
+      try {
+        const url = new URL(baseUrl)
+        if (url.protocol !== "https:" && url.hostname !== "localhost" && url.hostname !== "127.0.0.1") {
+          errors.baseUrl = t("errors.baseUrlInvalid")
+        }
+      } catch {
+        errors.baseUrl = t("errors.baseUrlInvalid")
+      }
+    }
+
+    if (!settings.model.trim()) {
+      errors.model = t("errors.modelRequired")
+    }
+
+    setFieldErrors(errors)
+    return Object.keys(errors).length === 0
+  }
+
   async function saveSettings() {
+    if (!validateSettings()) return
+
     setSaving(true)
     setMessage(null)
 
@@ -114,6 +155,8 @@ export function AiSettingsForm() {
   }
 
   async function testConnection() {
+    if (!validateSettings()) return
+
     setTesting(true)
     setMessage(null)
 
@@ -159,27 +202,49 @@ export function AiSettingsForm() {
       </div>
 
       <div className="mt-5 grid gap-5">
-        <label className="grid gap-2">
-          <span className="text-sm font-medium text-foreground">{t("fields.baseUrl")}</span>
+        <div className="grid gap-2">
+          <label htmlFor="ai-base-url" className="text-sm font-medium text-foreground">{t("fields.baseUrl")}</label>
           <input
+            id="ai-base-url"
             value={settings.baseUrl}
-            onChange={(event) => setSettings((current) => ({ ...current, baseUrl: event.target.value }))}
+            onChange={(event) => {
+              setSettings((current) => ({ ...current, baseUrl: event.target.value }))
+              handleClearFieldError("baseUrl")
+            }}
             placeholder="https://api.openai.com/v1"
-            className="h-11 rounded-lg border border-input bg-background px-3 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-primary/60 focus:ring-2 focus:ring-primary/15"
+            aria-invalid={!!fieldErrors.baseUrl}
+            aria-describedby={fieldErrors.baseUrl ? "ai-base-url-error" : undefined}
+            className={`h-11 rounded-lg border bg-background px-3 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-primary/60 focus:ring-2 focus:ring-primary/15 ${
+              fieldErrors.baseUrl ? "border-destructive" : "border-input"
+            }`}
             disabled={loading || saving}
           />
-        </label>
+          {fieldErrors.baseUrl ? (
+            <p id="ai-base-url-error" className="text-xs text-destructive" role="alert">{fieldErrors.baseUrl}</p>
+          ) : null}
+        </div>
 
-        <label className="grid gap-2">
-          <span className="text-sm font-medium text-foreground">{t("fields.model")}</span>
+        <div className="grid gap-2">
+          <label htmlFor="ai-model" className="text-sm font-medium text-foreground">{t("fields.model")}</label>
           <input
+            id="ai-model"
             value={settings.model}
-            onChange={(event) => setSettings((current) => ({ ...current, model: event.target.value }))}
+            onChange={(event) => {
+              setSettings((current) => ({ ...current, model: event.target.value }))
+              handleClearFieldError("model")
+            }}
             placeholder="gpt-4o-mini"
-            className="h-11 rounded-lg border border-input bg-background px-3 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-primary/60 focus:ring-2 focus:ring-primary/15"
+            aria-invalid={!!fieldErrors.model}
+            aria-describedby={fieldErrors.model ? "ai-model-error" : undefined}
+            className={`h-11 rounded-lg border bg-background px-3 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-primary/60 focus:ring-2 focus:ring-primary/15 ${
+              fieldErrors.model ? "border-destructive" : "border-input"
+            }`}
             disabled={loading || saving}
           />
-        </label>
+          {fieldErrors.model ? (
+            <p id="ai-model-error" className="text-xs text-destructive" role="alert">{fieldErrors.model}</p>
+          ) : null}
+        </div>
 
         <label className="grid gap-2">
           <span className="text-sm font-medium text-foreground">{t("fields.apiKey")}</span>

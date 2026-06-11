@@ -143,6 +143,11 @@
     },
     "errors": {
       "platformRequired": "Select at least one platform.",
+      "fieldRequired": "{field} is required (at least 2 characters).",
+      "fieldMaxLength": "{field} must be at most {max} characters.",
+      "goalsRequired": "Enter at least one goal.",
+      "goalsMaxItems": "You can enter up to {max} goals.",
+      "goalItemMaxLength": "Each goal must be at most {max} characters.",
       "saveFailed": "Account DNA could not be saved.",
       "planFailed": "Monthly plan could not be generated.",
       "unexpected": "Onboarding could not be completed. Try again."
@@ -180,6 +185,28 @@
       "empty": {
         "title": "No rewrite for this platform yet.",
         "description": "Generate a validated variant to keep it tied to this post."
+      },
+      "preview": {
+        "title": "Platform preview",
+        "unsupported": "Visual mockup is not available for YouTube yet. Use the raw rewrite copy for this platform."
+      },
+      "hook": {
+        "title": "Hook Enhancer",
+        "description": "Generate three alternative openers, then apply one locally to preview the stronger opening.",
+        "generate": "Generate hooks",
+        "messages": {
+          "generated": "Hook options generated with {source}.",
+          "applied": "Hook applied locally. Generate a rewrite to persist a full variant."
+        },
+        "errors": {
+          "generateFailed": "Hook options could not be generated."
+        }
+      },
+      "tone": {
+        "title": "Tone Sandbox",
+        "description": "Re-run this platform variant with a focused tone override.",
+        "selectLabel": "Tone override",
+        "apply": "Apply tone"
       }
     },
     "status": {
@@ -211,7 +238,10 @@
           "synced": "Live YouTube stats synced in {mode} mode."
         },
         "errors": {
-          "failed": "Live stats could not be synced."
+          "failed": "Live stats could not be synced.",
+          "externalIdRequired": "YouTube video ID is required.",
+          "externalIdMaxLength": "YouTube video ID must be at most 120 characters.",
+          "invalidUrl": "Enter a valid URL."
         }
       },
       "fields": {
@@ -225,7 +255,8 @@
         "saved": "Metric saved in {mode} mode."
       },
       "errors": {
-        "saveFailed": "Metric could not be saved."
+        "saveFailed": "Metric could not be saved.",
+        "invalidMetric": "All metric values must be non-negative integers."
       },
       "metricSummary": {
         "views": "{views} views",
@@ -310,7 +341,10 @@
       "verified": "Connection verified with {model}."
     },
     "errors": {
-      "unexpectedResponse": "Unexpected response from server."
+      "unexpectedResponse": "Unexpected response from server.",
+      "baseUrlRequired": "Base URL is required.",
+      "baseUrlInvalid": "Enter a valid URL (HTTPS required).",
+      "modelRequired": "Model is required."
     }
   }
 }
