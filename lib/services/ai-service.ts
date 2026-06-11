@@ -1,3 +1,4 @@
+import { z } from "zod"
 import {
   draftVersionSchema,
   insightSchema,
@@ -11,6 +12,7 @@ import {
   type PlatformVariant,
   type PostDetail,
   type PostMetric,
+  type ToneSandbox,
 } from "@/lib/domain"
 import { DEMO_MONTH, demoInsights, demoPlan } from "@/lib/demo-data"
 import { AiSettingsError, resolveAiProviderConfig } from "@/lib/ai-settings"
@@ -19,6 +21,21 @@ export type GenerationResult<T> = {
   data: T
   source: "openai" | "fallback"
   warning?: string
+}
+
+const hookOptionsResultSchema = z.object({
+  hooks: z.array(z.string().min(2).max(180)).min(1).max(3),
+})
+
+function normalizeVariant(detail: PostDetail, platform: PlatformId, variant: PlatformVariant) {
+  return platformVariantSchema.parse({
+    ...variant,
+    postId: detail.post.id,
+    platform,
+    characterCount: variant.body.length,
+    status: "generated",
+    updatedAt: new Date().toISOString(),
+  })
 }
 
 async function requestJson(prompt: string) {
@@ -127,6 +144,7 @@ Each post must include id, workspaceId, month, scheduledDate, title, format, goa
 export async function generatePlatformRewrite(
   detail: PostDetail,
   platform: PlatformId,
+  tone?: ToneSandbox,
 ): Promise<GenerationResult<PlatformVariant>> {
   const fallbackBody = {
     linkedin:
@@ -138,17 +156,20 @@ export async function generatePlatformRewrite(
     rednote:
       "创作者真正缺的不是灵感，而是把月计划、平台改写、发布状态和数据复盘串起来的工作流。",
   }[platform]
+  const tonePrefix = tone ? `${tone} take: ` : ""
+  const finalFallbackBody = `${tonePrefix}${fallbackBody}`
   const fallback = platformVariantSchema.parse({
     postId: detail.post.id,
     platform,
-    headline: `${detail.post.title} - ${platform}`,
-    body: fallbackBody,
+    headline: tone ? `${detail.post.title} - ${tone}` : `${detail.post.title} - ${platform}`,
+    body: finalFallbackBody,
     callToAction: "Save this workflow for your next content planning session.",
-    characterCount: fallbackBody.length,
+    characterCount: finalFallbackBody.length,
     status: "generated",
     updatedAt: new Date().toISOString(),
   })
   const prompt = `Rewrite this CreatorOS post for ${platform}. Return JSON with postId, platform, headline, body, callToAction, characterCount, status, updatedAt.
+Tone override: ${tone ?? "Use the account DNA tone."}
 Title: ${detail.post.title}
 Source idea: ${detail.post.sourceIdea}
 Draft: ${detail.post.draft}
@@ -168,13 +189,52 @@ Use status "generated" and ISO updatedAt.`
     const retryParsed = retry.ok ? platformVariantSchema.safeParse(retry.json) : undefined
 
     if (retryParsed?.success) {
-      return { data: retryParsed.data, source: "openai" }
+      return { data: normalizeVariant(detail, platform, retryParsed.data), source: "openai" }
     }
 
     return { data: fallback, source: "fallback", warning: "AI rewrite failed schema validation." }
   }
 
-  return { data: parsed.data, source: "openai" }
+  return { data: normalizeVariant(detail, platform, parsed.data), source: "openai" }
+}
+
+export async function generateHookOptions(
+  detail: PostDetail,
+  platform: PlatformId,
+  body?: string,
+): Promise<GenerationResult<string[]>> {
+  const sourceText = body?.trim() || detail.variants.find((variant) => variant.platform === platform)?.body || detail.post.draft
+  const fallback = [
+    `What if ${detail.post.title.toLowerCase()} was an operating loop instead of another content idea?`,
+    "Most creators do not have an ideas problem. They have a workflow visibility problem.",
+    "Before you publish another post, make the planning, rewrite, status, metrics, and insight loop visible.",
+  ]
+  const prompt = `Create exactly 3 alternative opening hooks for this ${platform} post.
+Return only JSON in this shape: {"hooks":["short hook","short hook","short hook"]}.
+Each hook must be under 180 characters and must not include markdown.
+Post title: ${detail.post.title}
+Source idea: ${detail.post.sourceIdea}
+Current body: ${sourceText}`
+  const generated = await requestJson(prompt)
+
+  if (!generated.ok) {
+    return { data: fallback, source: "fallback", warning: generated.warning }
+  }
+
+  const parsed = hookOptionsResultSchema.safeParse(generated.json)
+
+  if (!parsed.success) {
+    const retry = await requestJson(`${prompt}\nThe previous JSON failed validation. Return corrected JSON only.`)
+    const retryParsed = retry.ok ? hookOptionsResultSchema.safeParse(retry.json) : undefined
+
+    if (retryParsed?.success) {
+      return { data: retryParsed.data.hooks.slice(0, 3), source: "openai" }
+    }
+
+    return { data: fallback, source: "fallback", warning: "AI hook generation failed schema validation." }
+  }
+
+  return { data: parsed.data.hooks.slice(0, 3), source: "openai" }
 }
 
 export async function generateDraft(detail: PostDetail, platform: PlatformId): Promise<GenerationResult<DraftVersion>> {

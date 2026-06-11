@@ -135,17 +135,17 @@ This checklist is ordered around the MVP golden path:
 ## P1.6 - Premium UI & Tone Sandbox
 
 ### Mockup Workspace
-- [ ] Create `components/mockup-preview.tsx` supporting LinkedIn, X, and Rednote.
-- [ ] Implement desktop-like LinkedIn post styling, card headers, reactions, and "See more..." truncation.
-- [ ] Implement mobile-like X dark-mode post styling, retweet/heart/views metrics icons.
-- [ ] Implement mobile-like Rednote double-column view with double-tap like, description tags, and mock comments.
-- [ ] Embed the mockup previews as tabs inside `app/post/[id]/page.tsx` platform variant editor.
+- [x] Create `components/post/mockup-preview.tsx` supporting LinkedIn, X, and Rednote.
+- [x] Implement desktop-like LinkedIn post styling, card headers, reactions, and "See more..." truncation.
+- [x] Implement mobile-like X dark-mode post styling, retweet/heart/views metrics icons.
+- [x] Implement mobile-like Rednote double-column view with card layout, save/heart affordances, tags, and mock comments.
+- [x] Embed the mockup previews inside the `app/post/[id]` platform variant editor.
 
 ### Tone & Hook Sandbox
-- [ ] Create `/api/v1/posts/[id]/rewrite/hook` endpoint for generating 3 alternative opening lines.
-- [ ] Add "Hook Enhancer" floating widget or popup to replace/paste selected openers in editor.
-- [ ] Create "Tone Sandbox" dropdown in the editor, calling the rewrite API with customized tone overrides.
-- [ ] Validate Sandbox inputs and ensure fallback values are stable when LLM fails.
+- [x] Create `/api/v1/posts/[id]/rewrite/hook` endpoint for generating 3 alternative opening lines.
+- [x] Add "Hook Enhancer" controls to replace selected openers locally in the editor.
+- [x] Create "Tone Sandbox" dropdown in the editor, calling the rewrite API with customized tone overrides.
+- [x] Validate Sandbox inputs and ensure fallback values are stable when LLM fails.
 
 ## P1.7 - CSV S3 Backup & Actionable Tasks
 

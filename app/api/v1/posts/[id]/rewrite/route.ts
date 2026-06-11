@@ -29,7 +29,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     return fail("POST_NOT_FOUND", "Post could not be found.", { status: 404 })
   }
 
-  const generation = await generatePlatformRewrite(detail, parsed.data.platform)
+  const generation = await generatePlatformRewrite(detail, parsed.data.platform, parsed.data.tone)
   const saved = await saveVariant(workspace.workspaceId, id, generation.data)
 
   return ok({ generation, saved, workspace })

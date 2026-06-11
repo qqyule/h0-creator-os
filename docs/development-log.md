@@ -71,3 +71,11 @@ Use this file to record concise development progress. Do not paste raw chat tran
 - Verification: `pnpm typecheck`, `pnpm lint`, `pnpm build`, `git diff --check`, `CREATOROS_BASE_URL=http://localhost:3110 pnpm smoke:main-path`, no-key sync API returns typed `YOUTUBE_API_UNCONFIGURED`, invalid ID returns typed `YOUTUBE_INVALID_VIDEO_ID`, manual metric import still returns `200`, and browser smoke confirmed `/post/post-01` renders Sync Live Stats plus Manual entry on desktop/mobile.
 - Risks or notes: Real YouTube success sync was not run because `GOOGLE_PUBLIC_API_KEY` is not configured locally. Local browser console still shows the existing Vercel Analytics 404 in non-Vercel runtime.
 - Next: Add `GOOGLE_PUBLIC_API_KEY` in the deployment environment, re-run `PATCH /api/v1/posts/post-01/sync` with a public video ID, then include YouTube Data API v3 in the final architecture diagram and Devpost copy.
+
+## 2026-06-11 - P1.6 Premium UI And Tone Sandbox Implemented
+
+- Goal: Add visual platform previews, hook exploration, and tone overrides to the post detail rewrite workflow without expanding into CSV import or task generation.
+- Changed: Added LinkedIn/X/Rednote mockup previews, Hook Enhancer controls and API, tone-aware rewrite requests, localized UI copy, and AI rewrite normalization so generated variants persist against the current post and platform.
+- Verification: `pnpm typecheck`, `pnpm lint`, `pnpm build`, `CREATOROS_BASE_URL=http://localhost:3112 pnpm smoke:main-path`, `POST /api/v1/posts/post-01/rewrite/hook`, `POST /api/v1/posts/post-01/rewrite` with `tone=Playful`, and Playwright desktop/mobile snapshots for `/post/post-01` covering LinkedIn, X, Rednote, hook generation, local hook apply, and tone rewrite.
+- Risks or notes: Local browser console still shows the known Vercel Analytics 404 outside Vercel. YouTube keeps the raw rewrite view because P1.6 only implements visual mockups for LinkedIn, X, and Rednote.
+- Next: Continue with P1.7 CSV S3 backup and actionable tasks, or switch to submission evidence if the product scope is frozen.

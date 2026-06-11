@@ -17,6 +17,11 @@ export const platformLabels: Record<PlatformId, string> = {
   rednote: "Rednote",
 }
 
+export const toneSandboxSchema = z.enum(["Analytic", "Playful", "Provocative", "Empathetic"])
+export type ToneSandbox = z.infer<typeof toneSandboxSchema>
+
+export const toneSandboxOptions: ToneSandbox[] = ["Analytic", "Playful", "Provocative", "Empathetic"]
+
 export const accountDnaSchema = z.object({
   workspaceId: workspaceIdSchema,
   niche: z.string().min(2).max(120),
@@ -153,10 +158,16 @@ export const statusUpdateSchema = z.object({
 
 export const rewriteRequestSchema = z.object({
   platform: platformSchema,
+  tone: toneSandboxSchema.optional(),
 })
 
 export const draftRequestSchema = z.object({
   platform: platformSchema,
+})
+
+export const hookRewriteRequestSchema = z.object({
+  platform: platformSchema,
+  body: z.string().min(2).max(2800).optional(),
 })
 
 export const metricInputSchema = postMetricSchema
