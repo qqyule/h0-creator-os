@@ -3,8 +3,10 @@ import { ArrowRight, CalendarDays, CheckCircle2, ListChecks, Sparkles, Target, W
 import { redirect } from "next/navigation"
 import { getTranslations } from "next-intl/server"
 import { AppShell } from "@/components/app/app-shell"
+import { DashboardGuide } from "@/components/dashboard/dashboard-guide"
 import { PlatformPill } from "@/components/app/platform-pill"
 import { StatusBadge } from "@/components/app/status-badge"
+import { ThemeToggle } from "@/components/theme-toggle"
 import { Button } from "@/components/ui/button"
 import { workflowStatuses, type DashboardSummary } from "@/lib/domain"
 import { DEMO_MONTH } from "@/lib/demo-data"
@@ -44,14 +46,16 @@ export default async function DashboardPage() {
     <AppShell>
       <div className="flex flex-col gap-6">
         <section className="flex flex-col gap-4 border-b border-border pb-6 lg:flex-row lg:items-end lg:justify-between">
-          <div>
+          <div data-guide="dashboard-hero">
             <p className="text-sm font-medium text-primary">{t("hero.eyebrow")}</p>
             <h1 className="mt-2 text-3xl font-semibold tracking-tight text-foreground">{t("hero.title")}</h1>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
               {t("hero.description")}
             </p>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div data-guide="dashboard-actions" className="flex flex-wrap items-center gap-2">
+            <ThemeToggle />
+            <DashboardGuide />
             <Button asChild size="lg">
               <Link href="/onboarding">
                 <Sparkles data-icon="inline-start" />
@@ -67,7 +71,7 @@ export default async function DashboardPage() {
           </div>
         </section>
 
-        <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <section data-guide="dashboard-metrics" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <MetricCard label={t("metrics.plannedPosts")} value={summary.posts.length.toString()} detail={summary.plan.title} />
           <MetricCard label={t("metrics.publishedViews")} value={publishedMetrics.views.toLocaleString()} detail={t("metrics.demoMetrics")} />
           <MetricCard label={t("metrics.engagements")} value={publishedMetrics.likes.toLocaleString()} detail={t("metrics.likesTracked")} />
@@ -75,7 +79,7 @@ export default async function DashboardPage() {
         </section>
 
         <section className="grid gap-5 xl:grid-cols-[minmax(0,4fr)_minmax(0,3fr)]">
-          <div className="min-w-0 rounded-2xl border border-border bg-card p-5 shadow-sm">
+          <div data-guide="dashboard-monthly-plan" className="min-w-0 rounded-2xl border border-border bg-card p-5 shadow-sm">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="min-w-0">
                 <h2 className="text-base font-semibold text-foreground">{t("monthlyPlan.title")}</h2>
@@ -110,7 +114,7 @@ export default async function DashboardPage() {
             </div>
           </div>
 
-          <div className="min-w-0 rounded-2xl border border-border bg-card p-5 shadow-sm">
+          <div data-guide="dashboard-account-dna" className="min-w-0 rounded-2xl border border-border bg-card p-5 shadow-sm">
             <h2 className="text-base font-semibold text-foreground">{t("accountDna.title")}</h2>
             <dl className="mt-4 grid gap-4 text-sm">
               <InfoRow label={t("accountDna.niche")} value={summary.profile.niche} />
@@ -126,7 +130,7 @@ export default async function DashboardPage() {
           </div>
         </section>
 
-        <section className="min-w-0 rounded-2xl border border-border bg-card p-5 shadow-sm">
+        <section data-guide="dashboard-workflow" className="min-w-0 rounded-2xl border border-border bg-card p-5 shadow-sm">
           <div className="flex items-center gap-2">
             <Workflow className="h-5 w-5 text-primary" />
             <h2 className="text-base font-semibold text-foreground">{t("workflow.title")}</h2>
@@ -157,7 +161,7 @@ export default async function DashboardPage() {
           </div>
         </section>
 
-        <section className="grid gap-5 lg:grid-cols-2">
+        <section data-guide="dashboard-feedback-loop" className="grid gap-5 lg:grid-cols-2">
           <div className="min-w-0 rounded-2xl border border-border bg-card p-5 shadow-sm">
             <div className="flex items-center gap-2">
               <Target className="h-5 w-5 text-primary" />

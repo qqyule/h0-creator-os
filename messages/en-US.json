@@ -117,6 +117,45 @@
       "serverSmoke": "Server-side smoke endpoints"
     }
   },
+  "dashboardGuide": {
+    "button": "Start guide",
+    "progress": "{{current}} of {{total}}",
+    "buttons": {
+      "next": "Next",
+      "previous": "Back",
+      "done": "Done"
+    },
+    "steps": {
+      "hero": {
+        "title": "Your command center",
+        "description": "This dashboard summarizes the 30-day content operations cycle: plan, adapt, publish, measure, and improve."
+      },
+      "actions": {
+        "title": "Workspace controls",
+        "description": "Switch theme, replay this guide, update Account DNA, or open the content calendar from here."
+      },
+      "metrics": {
+        "title": "Feedback metrics",
+        "description": "These cards turn planned posts, published views, engagements, and followers into a quick health check."
+      },
+      "monthlyPlan": {
+        "title": "Monthly plan",
+        "description": "Open any planned post to inspect details, generate platform rewrites, update status, and save metrics."
+      },
+      "accountDna": {
+        "title": "Account DNA",
+        "description": "Niche, audience, cadence, tone, and platforms become the context for planning and rewrite workflows."
+      },
+      "workflow": {
+        "title": "Workflow board",
+        "description": "Track where each post sits across Idea, Drafting, Review, Scheduled, and Published."
+      },
+      "feedbackLoop": {
+        "title": "Insights and action items",
+        "description": "Analytics insights become concrete tasks so the next cycle improves instead of starting from scratch."
+      }
+    }
+  },
   "onboarding": {
     "eyebrow": "Onboarding",
     "title": "Set the account DNA",

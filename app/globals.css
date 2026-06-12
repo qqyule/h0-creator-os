@@ -148,4 +148,43 @@
       inset 0 1px 0 oklch(1 0 0 / 7%),
       0 18px 50px oklch(0 0 0 / 26%);
   }
+
+  .creatoros-driver-popover {
+    border: 1px solid var(--border);
+    border-radius: 1rem;
+    background: var(--popover);
+    color: var(--popover-foreground);
+    box-shadow: 0 24px 80px oklch(0 0 0 / 18%);
+  }
+
+  .creatoros-driver-popover .driver-popover-title {
+    color: var(--popover-foreground);
+    font-size: 0.98rem;
+    line-height: 1.35;
+  }
+
+  .creatoros-driver-popover .driver-popover-description,
+  .creatoros-driver-popover .driver-popover-progress-text {
+    color: var(--muted-foreground);
+    line-height: 1.6;
+  }
+
+  .creatoros-driver-popover .driver-popover-next-btn,
+  .creatoros-driver-popover .driver-popover-prev-btn,
+  .creatoros-driver-popover .driver-popover-close-btn {
+    border-radius: 0.625rem;
+    border-color: var(--border);
+    text-shadow: none;
+  }
+
+  .creatoros-driver-popover .driver-popover-next-btn {
+    background: var(--primary);
+    color: var(--primary-foreground);
+  }
+
+  .creatoros-driver-popover .driver-popover-prev-btn,
+  .creatoros-driver-popover .driver-popover-close-btn {
+    background: var(--background);
+    color: var(--foreground);
+  }
 }

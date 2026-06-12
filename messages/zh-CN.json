@@ -117,6 +117,45 @@
       "serverSmoke": "服务端 smoke 入口"
     }
   },
+  "dashboardGuide": {
+    "button": "查看引导",
+    "progress": "第 {{current}} / {{total}} 步",
+    "buttons": {
+      "next": "下一步",
+      "previous": "上一步",
+      "done": "完成"
+    },
+    "steps": {
+      "hero": {
+        "title": "内容运营指挥中心",
+        "description": "这里汇总 30 天内容运营周期：规划、改写、发布、度量，并反哺下一轮优化。"
+      },
+      "actions": {
+        "title": "工作区控制区",
+        "description": "你可以在这里切换主题、重新查看引导、更新账号 DNA，或打开内容日历。"
+      },
+      "metrics": {
+        "title": "反馈指标",
+        "description": "这些卡片把计划内容、已发布浏览量、互动量和新增关注转成快速健康检查。"
+      },
+      "monthlyPlan": {
+        "title": "月度计划",
+        "description": "打开任意计划内容，即可查看详情、生成平台改写、更新状态并保存指标。"
+      },
+      "accountDna": {
+        "title": "账号 DNA",
+        "description": "定位、受众、节奏、语气和平台会成为规划与改写流程的上下文。"
+      },
+      "workflow": {
+        "title": "流程看板",
+        "description": "在 Idea、Drafting、Review、Scheduled、Published 之间追踪每条内容的状态。"
+      },
+      "feedbackLoop": {
+        "title": "洞察与行动事项",
+        "description": "数据洞察会转成具体任务，让下一轮内容周期持续改进，而不是重新开始。"
+      }
+    }
+  },
   "onboarding": {
     "eyebrow": "Onboarding",
     "title": "设置账号 DNA",
