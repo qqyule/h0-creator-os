@@ -5,17 +5,19 @@ import { createPresignedUpload } from "@/lib/services/storage-service"
 import { resolveWorkspace } from "@/lib/workspace"
 
 export async function POST(request: Request) {
-  const admin = await requireAdmin()
-  if (!admin.ok) {
-    return admin.response
-  }
-
   const workspace = await resolveWorkspace()
   const body = await request.json().catch(() => undefined)
   const parsed = assetPresignSchema.safeParse(body)
 
   if (!parsed.success) {
     return validationError("Asset presign payload is invalid.")
+  }
+
+  if (parsed.data.purpose !== "metrics-import") {
+    const admin = await requireAdmin()
+    if (!admin.ok) {
+      return admin.response
+    }
   }
 
   const result = await createPresignedUpload({

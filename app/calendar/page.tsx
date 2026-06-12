@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { CalendarDays, ChevronRight } from "lucide-react"
+import { CalendarDays, ChevronRight, ListChecks } from "lucide-react"
 import { notFound } from "next/navigation"
 import { getTranslations } from "next-intl/server"
 import { AppShell } from "@/components/app/app-shell"
@@ -7,16 +7,20 @@ import { PlatformPill } from "@/components/app/platform-pill"
 import { StatusBadge } from "@/components/app/status-badge"
 import { Button } from "@/components/ui/button"
 import { DEMO_MONTH } from "@/lib/demo-data"
-import type { MonthlyPlan } from "@/lib/domain"
-import { ContentNotFoundError, getMonthlyPlan } from "@/lib/repositories/content-repository"
+import type { CreatorTask, MonthlyPlan } from "@/lib/domain"
+import { ContentNotFoundError, getMonthlyPlan, listTasks } from "@/lib/repositories/content-repository"
 import { resolveWorkspace } from "@/lib/workspace"
 
 export default async function CalendarPage() {
   const t = await getTranslations("calendar")
   const workspace = await resolveWorkspace()
   let plan: MonthlyPlan
+  let tasks: CreatorTask[]
   try {
-    plan = await getMonthlyPlan(workspace.workspaceId, DEMO_MONTH)
+    ;[plan, tasks] = await Promise.all([
+      getMonthlyPlan(workspace.workspaceId, DEMO_MONTH),
+      listTasks(workspace.workspaceId, DEMO_MONTH),
+    ])
   } catch (error) {
     if (error instanceof ContentNotFoundError) {
       notFound()
@@ -25,6 +29,15 @@ export default async function CalendarPage() {
     throw error
   }
   const weeks = chunk(plan.posts, 7)
+  const tasksByPost = new Map<string, CreatorTask[]>()
+
+  for (const task of tasks) {
+    if (!task.postId || task.status === "done") {
+      continue
+    }
+
+    tasksByPost.set(task.postId, [...(tasksByPost.get(task.postId) ?? []), task])
+  }
 
   return (
     <AppShell>
@@ -72,6 +85,12 @@ export default async function CalendarPage() {
                       <p className="mt-2 text-xs text-muted-foreground">{post.format}</p>
                       <div className="mt-auto pt-3">
                         <PlatformPill platform={post.primaryPlatform} />
+                        {tasksByPost.get(post.id)?.length ? (
+                          <div className="mt-2 flex items-center gap-1 rounded-md bg-primary/10 px-2 py-1 text-xs font-medium text-primary">
+                            <ListChecks className="h-3 w-3" />
+                            {t("taskMarker", { count: tasksByPost.get(post.id)?.length ?? 0 })}
+                          </div>
+                        ) : null}
                       </div>
                     </Link>
                   ))}

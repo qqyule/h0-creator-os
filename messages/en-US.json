@@ -100,6 +100,11 @@
     "insights": {
       "title": "Next-cycle Insights"
     },
+    "tasks": {
+      "title": "Open Action Items",
+      "openPost": "Open linked post",
+      "empty": "No open action items yet."
+    },
     "readiness": {
       "title": "Service Readiness",
       "demoWorkspace": "Demo workspace",
@@ -158,6 +163,7 @@
     "openFirstPost": "Open first post",
     "calendarTitle": "June 2026 Calendar",
     "plannedPosts": "{count} planned posts",
+    "taskMarker": "{count} task",
     "empty": {
       "title": "No posts planned yet.",
       "description": "Generate a monthly plan from Account DNA to fill the calendar."
@@ -288,6 +294,59 @@
       "comments": "Comments",
       "saves": "Saves",
       "followers": "Followers"
+    },
+    "csv": {
+      "title": "CSV metrics import",
+      "description": "Download the template, upload raw metrics to S3 when configured, preview row deltas, then commit valid rows into the feedback loop.",
+      "downloadTemplate": "Download template",
+      "chooseFile": "Choose a CSV file",
+      "columns": "Required columns: postId, platform, publishedAt, views, likes, comments, saves, followersGained",
+      "fileName": "File",
+      "validRows": "Valid rows",
+      "invalidRows": "Invalid rows",
+      "commit": "Commit metrics",
+      "reset": "Reset",
+      "lineError": "Line {line}: {error}",
+      "table": {
+        "post": "Post",
+        "platform": "Platform",
+        "publishedAt": "Published",
+        "viewsDelta": "Views delta",
+        "likesDelta": "Likes delta",
+        "savesDelta": "Saves delta"
+      },
+      "messages": {
+        "imported": "{count} metrics imported.",
+        "s3Unconfigured": "S3 is not configured. Metrics can still be committed after local validation.",
+        "backedUp": "Raw CSV backed up to {key}."
+      },
+      "errors": {
+        "fileType": "Choose a .csv file.",
+        "invalidRows": "Fix invalid rows before committing metrics.",
+        "fixRows": "Fix these rows before import.",
+        "unknown": "Unknown error",
+        "backupFailed": "Raw CSV backup failed. You can still commit validated metrics.",
+        "importFailed": "Metrics import failed."
+      }
+    },
+    "tasks": {
+      "title": "Action items",
+      "description": "Turn the latest insights into concrete next-cycle work cards.",
+      "generate": "Generate action items",
+      "markDone": "Mark done",
+      "done": "Done",
+      "due": "Due {date}",
+      "messages": {
+        "generated": "Action items generated with {source}."
+      },
+      "errors": {
+        "generateFailed": "Action items could not be generated.",
+        "updateFailed": "Task status could not be updated."
+      },
+      "empty": {
+        "title": "No action items yet.",
+        "description": "Generate task cards from stored insights after metrics are imported."
+      }
     },
     "topPosts": "Top posts by views",
     "viewsValue": "{views} views",

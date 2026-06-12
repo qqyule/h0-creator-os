@@ -1,5 +1,6 @@
 import type {
   AccountDna,
+  CreatorTask,
   DraftVersion,
   Insight,
   MonthlyPlan,
@@ -169,6 +170,37 @@ export const demoInsights: Insight[] = [
   },
 ]
 
+export const demoTasks: CreatorTask[] = [
+  {
+    id: "task-june-linkedin-loop",
+    workspaceId: DEMO_WORKSPACE_ID,
+    month: DEMO_MONTH,
+    title: "Turn the strongest workflow post into a LinkedIn carousel",
+    description:
+      "Use the saved-rate insight to package the operating loop as a 6-slide carousel before the next planning review.",
+    sourceInsightId: "insight-june-retention",
+    postId: "post-05",
+    status: "open",
+    dueDate: "2026-06-14",
+    createdAt: now,
+    updatedAt: now,
+  },
+  {
+    id: "task-june-rednote-template",
+    workspaceId: DEMO_WORKSPACE_ID,
+    month: DEMO_MONTH,
+    title: "Create a Rednote checklist version",
+    description:
+      "Convert the platform-fit insight into a concrete checklist post with first-person examples and save-oriented framing.",
+    sourceInsightId: "insight-june-platform-fit",
+    postId: "post-08",
+    status: "open",
+    dueDate: "2026-06-16",
+    createdAt: now,
+    updatedAt: now,
+  },
+]
+
 export function getDemoPostDetail(postId: string) {
   const post = demoPosts.find((item) => item.id === postId)
 
@@ -191,5 +223,6 @@ export function getDemoDashboardSummary() {
     posts: demoPosts,
     insights: demoInsights,
     metrics: demoMetrics,
+    tasks: demoTasks,
   }
 }

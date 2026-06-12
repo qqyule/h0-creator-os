@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { ArrowRight, CalendarDays, CheckCircle2, Sparkles, Target, Workflow } from "lucide-react"
+import { ArrowRight, CalendarDays, CheckCircle2, ListChecks, Sparkles, Target, Workflow } from "lucide-react"
 import { redirect } from "next/navigation"
 import { getTranslations } from "next-intl/server"
 import { AppShell } from "@/components/app/app-shell"
@@ -38,6 +38,7 @@ export default async function DashboardPage() {
     posts: summary.posts.filter((post) => post.status === status).slice(0, 3),
   }))
   const nextPosts = summary.posts.slice(0, 5)
+  const openTasks = summary.tasks.filter((task) => task.status === "open").slice(0, 4)
 
   return (
     <AppShell>
@@ -182,6 +183,42 @@ export default async function DashboardPage() {
               <ReadinessItem label={t("readiness.ai")} value={t("readiness.validatedFallback")} />
               <ReadinessItem label={t("readiness.integrations")} value={t("readiness.serverSmoke")} />
             </div>
+          </div>
+        </section>
+
+        <section className="min-w-0 rounded-2xl border border-border bg-card p-5 shadow-sm">
+          <div className="flex items-center gap-2">
+            <ListChecks className="h-5 w-5 text-primary" />
+            <h2 className="text-base font-semibold text-foreground">{t("tasks.title")}</h2>
+          </div>
+          <div className="mt-4 grid gap-3 md:grid-cols-2">
+            {openTasks.length ? (
+              openTasks.map((task) => (
+                <div key={task.id} className="rounded-xl border border-border bg-background p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="line-clamp-2 font-medium text-foreground">{task.title}</p>
+                      <p className="mt-2 line-clamp-2 text-sm leading-6 text-muted-foreground">{task.description}</p>
+                    </div>
+                    <span className="shrink-0 rounded-full bg-primary/10 px-2 py-1 text-xs font-medium text-primary">
+                      {task.dueDate.slice(5)}
+                    </span>
+                  </div>
+                  {task.postId ? (
+                    <Button asChild variant="outline" size="sm" className="mt-3">
+                      <Link href={`/post/${task.postId}`}>
+                        {t("tasks.openPost")}
+                        <ArrowRight data-icon="inline-end" />
+                      </Link>
+                    </Button>
+                  ) : null}
+                </div>
+              ))
+            ) : (
+              <div className="rounded-xl border border-dashed border-border p-6 text-sm text-muted-foreground md:col-span-2">
+                {t("tasks.empty")}
+              </div>
+            )}
           </div>
         </section>
       </div>

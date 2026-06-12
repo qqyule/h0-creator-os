@@ -10,6 +10,9 @@ export type WorkflowStatus = z.infer<typeof workflowStatusSchema>
 
 export const workflowStatuses: WorkflowStatus[] = ["Idea", "Drafting", "Review", "Scheduled", "Published"]
 
+export const creatorTaskStatusSchema = z.enum(["open", "done"])
+export type CreatorTaskStatus = z.infer<typeof creatorTaskStatusSchema>
+
 export const platformLabels: Record<PlatformId, string> = {
   linkedin: "LinkedIn",
   x: "X",
@@ -118,6 +121,21 @@ export const insightSchema = z.object({
 })
 export type Insight = z.infer<typeof insightSchema>
 
+export const creatorTaskSchema = z.object({
+  id: z.string().min(1),
+  workspaceId: workspaceIdSchema,
+  month: z.string().regex(/^\d{4}-\d{2}$/),
+  title: z.string().min(2).max(180),
+  description: z.string().min(2).max(600),
+  sourceInsightId: z.string().min(1),
+  postId: z.string().min(1).optional(),
+  status: creatorTaskStatusSchema,
+  dueDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
+})
+export type CreatorTask = z.infer<typeof creatorTaskSchema>
+
 export const postDetailSchema = z.object({
   post: postSchema,
   variants: z.array(platformVariantSchema),
@@ -132,6 +150,7 @@ export const dashboardSummarySchema = z.object({
   posts: z.array(postSchema),
   insights: z.array(insightSchema),
   metrics: z.array(postMetricSchema),
+  tasks: z.array(creatorTaskSchema),
 })
 export type DashboardSummary = z.infer<typeof dashboardSummarySchema>
 
@@ -175,6 +194,18 @@ export const metricInputSchema = postMetricSchema
   .extend({
     publishedAt: z.string().datetime().optional(),
   })
+
+export const metricImportBatchSchema = z.object({
+  metrics: z.array(metricInputSchema).min(1).max(100),
+})
+
+export const actionableTaskRequestSchema = z.object({
+  month: z.string().regex(/^\d{4}-\d{2}$/).optional(),
+})
+
+export const taskStatusUpdateSchema = z.object({
+  status: creatorTaskStatusSchema,
+})
 
 export const liveMetricSyncInputSchema = z.object({
   externalId: z.string().trim().min(1).max(120),

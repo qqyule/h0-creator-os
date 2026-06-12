@@ -1,6 +1,7 @@
 import { TransactWriteCommand, type TransactWriteCommandInput } from "@aws-sdk/lib-dynamodb"
 import {
   accountDnaSchema,
+  creatorTaskSchema,
   dashboardSummarySchema,
   draftVersionSchema,
   insightSchema,
@@ -10,6 +11,8 @@ import {
   postMetricSchema,
   postSchema,
   type AccountDna,
+  type CreatorTask,
+  type CreatorTaskStatus,
   type DashboardSummary,
   type DraftVersion,
   type Insight,
@@ -29,6 +32,7 @@ import {
   demoPlan,
   demoPosts,
   demoProfile,
+  demoTasks,
   demoVariants,
   getDemoDashboardSummary,
   getDemoPostDetail,
@@ -43,6 +47,7 @@ import {
   PostEntity,
   PostMetricEntity,
   ProfileEntity,
+  TaskEntity,
 } from "@/lib/dynamodb/entities"
 import { getDynamoConfig } from "@/lib/env"
 
@@ -51,6 +56,7 @@ type MonthlyPlanRecord = Omit<MonthlyPlan, "posts">
 type DraftVersionRecord = DraftVersion & { workspaceId: string }
 type PlatformVariantRecord = PlatformVariant & Pick<Post, "workspaceId" | "month" | "scheduledDate">
 type PostMetricRecord = PostMetric & { workspaceId: string; month: string }
+const demoTaskStore = new Map<string, CreatorTask[]>()
 
 export class ContentNotFoundError extends Error {
   code: "PROFILE_NOT_FOUND" | "PLAN_NOT_FOUND" | "POST_NOT_FOUND"
@@ -154,6 +160,20 @@ function getDemoInsightsForWorkspace(workspaceId: string, month = DEMO_MONTH): I
     workspaceId,
     month,
   }))
+}
+
+function getDemoTasksForWorkspace(workspaceId: string, month = DEMO_MONTH): CreatorTask[] {
+  const seeded = demoTasks.map((task) => ({
+    ...task,
+    workspaceId,
+    month,
+  }))
+  const generated = demoTaskStore.get(`${workspaceId}#${month}`) ?? []
+
+  return [
+    ...seeded.filter((task) => !generated.some((item) => item.id === task.id)),
+    ...generated,
+  ].sort((a, b) => a.dueDate.localeCompare(b.dueDate))
 }
 
 function getDemoPostDetailForWorkspace(workspaceId: string, postId: string): PostDetail {
@@ -290,14 +310,16 @@ export async function getDashboardSummary(workspaceId: string, month = DEMO_MONT
       plan: getDemoPlanForWorkspace(workspaceId, month),
       posts: getDemoPlanForWorkspace(workspaceId, month).posts,
       insights: getDemoInsightsForWorkspace(workspaceId, month),
+      tasks: getDemoTasksForWorkspace(workspaceId, month),
     })
   }
 
-  const [profile, plan, insights, metrics] = await Promise.all([
+  const [profile, plan, insights, metrics, tasks] = await Promise.all([
     getProfile(workspaceId),
     getMonthlyPlan(workspaceId, month),
     listInsights(workspaceId, month),
     listMetrics(workspaceId, month),
+    listTasks(workspaceId, month),
   ])
 
   return dashboardSummarySchema.parse({
@@ -306,6 +328,7 @@ export async function getDashboardSummary(workspaceId: string, month = DEMO_MONT
     posts: plan.posts,
     insights,
     metrics,
+    tasks,
   })
 }
 
@@ -460,6 +483,16 @@ export async function listInsights(workspaceId: string, month = DEMO_MONTH): Pro
   return result.data.map((item) => insightSchema.parse(item))
 }
 
+export async function listTasks(workspaceId: string, month = DEMO_MONTH): Promise<CreatorTask[]> {
+  if (canUseDemoFallback(workspaceId)) {
+    return getDemoTasksForWorkspace(workspaceId, month)
+  }
+
+  const result = await TaskEntity.query.byMonth({ workspaceId, month }).go()
+
+  return result.data.map((item) => creatorTaskSchema.parse(item))
+}
+
 export async function saveInsight(workspaceId: string, insight: Insight) {
   const saved = { ...insight, workspaceId }
 
@@ -470,6 +503,72 @@ export async function saveInsight(workspaceId: string, insight: Insight) {
   await InsightEntity.put(saved).go()
 
   return { insight: saved, mode: "dynamodb" as const }
+}
+
+export async function saveTasks(workspaceId: string, tasks: CreatorTask[]) {
+  const saved = tasks.map((task) => creatorTaskSchema.parse({ ...task, workspaceId }))
+
+  if (!dynamoReady()) {
+    for (const task of saved) {
+      const key = `${workspaceId}#${task.month}`
+      const current = demoTaskStore.get(key) ?? []
+      const next = current.filter((item) => item.id !== task.id)
+      demoTaskStore.set(key, [...next, task])
+    }
+
+    return { tasks: saved, mode: "demo" as const }
+  }
+
+  await Promise.all(saved.map((task) => TaskEntity.put(task).go()))
+
+  return { tasks: saved, mode: "dynamodb" as const }
+}
+
+export async function updateTaskStatus(workspaceId: string, taskId: string, status: CreatorTaskStatus) {
+  let existing: CreatorTask | undefined
+
+  if (dynamoReady()) {
+    const result = await TaskEntity.get({ workspaceId, id: taskId }).go()
+    existing = result.data ? creatorTaskSchema.parse(result.data) : undefined
+  } else {
+    existing = (await listTasks(workspaceId)).find((task) => task.id === taskId)
+  }
+
+  const updatedAt = new Date().toISOString()
+
+  if (!existing) {
+    return {
+      ok: false as const,
+      code: "NOT_FOUND" as const,
+      message: "Task could not be found.",
+      mode: dynamoReady() ? ("dynamodb" as const) : ("demo" as const),
+    }
+  }
+
+  const task = creatorTaskSchema.parse({
+    ...existing,
+    status,
+    updatedAt,
+  })
+
+  if (!dynamoReady()) {
+    const key = `${workspaceId}#${task.month}`
+    const current = demoTaskStore.get(key) ?? []
+    const seededTask = demoTasks.some((item) => item.id === task.id)
+    const next = seededTask ? current : current.filter((item) => item.id !== task.id)
+    demoTaskStore.set(key, [...next, task])
+
+    return { ok: true as const, task, mode: "demo" as const }
+  }
+
+  await TaskEntity.update({ workspaceId, id: taskId })
+    .set({
+      status,
+      updatedAt,
+    })
+    .go()
+
+  return { ok: true as const, task, mode: "dynamodb" as const }
 }
 
 export async function seedDemoWorkspace() {
@@ -483,6 +582,7 @@ export async function seedDemoWorkspace() {
   const drafts = demoDrafts
   const metrics = demoMetrics
   const insights = getDemoInsightsForWorkspace(DEMO_WORKSPACE_ID, DEMO_MONTH)
+  const tasks = getDemoTasksForWorkspace(DEMO_WORKSPACE_ID, DEMO_MONTH)
   let count = 0
 
   await ProfileEntity.put(profile).go()
@@ -509,6 +609,11 @@ export async function seedDemoWorkspace() {
 
   for (const insight of insights) {
     await InsightEntity.put(insight).go()
+    count += 1
+  }
+
+  for (const task of tasks) {
+    await TaskEntity.put(task).go()
     count += 1
   }
 

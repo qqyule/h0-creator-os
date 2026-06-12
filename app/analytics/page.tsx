@@ -1,14 +1,15 @@
 import Link from "next/link"
-import { BarChart3, Download, Upload } from "lucide-react"
+import { BarChart3 } from "lucide-react"
 import { notFound } from "next/navigation"
 import { getTranslations } from "next-intl/server"
+import { ActionableTasksPanel } from "@/components/analytics/actionable-tasks"
+import { CsvImportPanel } from "@/components/analytics/csv-import-panel"
 import { AppShell } from "@/components/app/app-shell"
 import { PlatformPill } from "@/components/app/platform-pill"
 import { InsightGenerator } from "@/components/post/insight-actions"
-import { Button } from "@/components/ui/button"
 import { DEMO_MONTH } from "@/lib/demo-data"
-import type { Insight, MonthlyPlan, PostMetric } from "@/lib/domain"
-import { ContentNotFoundError, getMonthlyPlan, listInsights, listMetrics } from "@/lib/repositories/content-repository"
+import type { CreatorTask, Insight, MonthlyPlan, PostMetric } from "@/lib/domain"
+import { ContentNotFoundError, getMonthlyPlan, listInsights, listMetrics, listTasks } from "@/lib/repositories/content-repository"
 import { resolveWorkspace } from "@/lib/workspace"
 
 export default async function AnalyticsPage() {
@@ -17,11 +18,13 @@ export default async function AnalyticsPage() {
   let plan: MonthlyPlan
   let metrics: PostMetric[]
   let insights: Insight[]
+  let tasks: CreatorTask[]
   try {
-    ;[plan, metrics, insights] = await Promise.all([
+    ;[plan, metrics, insights, tasks] = await Promise.all([
       getMonthlyPlan(workspace.workspaceId, DEMO_MONTH),
       listMetrics(workspace.workspaceId, DEMO_MONTH),
       listInsights(workspace.workspaceId, DEMO_MONTH),
+      listTasks(workspace.workspaceId, DEMO_MONTH),
     ])
   } catch (error) {
     if (error instanceof ContentNotFoundError) {
@@ -53,16 +56,6 @@ export default async function AnalyticsPage() {
               {t("description")}
             </p>
           </div>
-          <div className="flex flex-wrap gap-2">
-            <Button variant="outline" disabled>
-              <Upload data-icon="inline-start" />
-              {t("importBoundary")}
-            </Button>
-            <Button variant="outline" disabled>
-              <Download data-icon="inline-start" />
-              {t("exportCsv")}
-            </Button>
-          </div>
         </section>
 
         <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
@@ -72,6 +65,8 @@ export default async function AnalyticsPage() {
           <MetricCard label={t("metrics.saves")} value={totals.saves.toLocaleString()} />
           <MetricCard label={t("metrics.followers")} value={totals.followersGained.toLocaleString()} />
         </section>
+
+        <CsvImportPanel posts={plan.posts} metrics={metrics} />
 
         <section className="grid gap-5 xl:grid-cols-[minmax(0,3fr)_minmax(320px,2fr)]">
           <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
@@ -130,6 +125,8 @@ export default async function AnalyticsPage() {
             </div>
           </div>
         </section>
+
+        <ActionableTasksPanel month={DEMO_MONTH} initialTasks={tasks} />
 
         <InsightGenerator month={DEMO_MONTH} />
       </div>

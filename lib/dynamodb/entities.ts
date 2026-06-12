@@ -307,6 +307,44 @@ export const InsightEntity = new Entity(
   { client, table },
 )
 
+export const TaskEntity = new Entity(
+  {
+    model: { entity: "CreatorTask", service, version },
+    attributes: {
+      id: { type: "string", required: true },
+      workspaceId: { type: "string", required: true },
+      month: { type: "string", required: true },
+      title: { type: "string", required: true },
+      description: { type: "string", required: true },
+      sourceInsightId: { type: "string", required: true },
+      postId: { type: "string" },
+      status: { type: "string", required: true },
+      dueDate: { type: "string", required: true },
+      createdAt: { type: "string", required: true },
+      updatedAt: { type: "string", required: true },
+    },
+    indexes: {
+      task: {
+        pk: commonIndexes.primary.pk,
+        sk: {
+          field: "sk",
+          composite: ["id"],
+          template: "TASK#${id}",
+        },
+      },
+      byMonth: {
+        ...commonIndexes.byMonth,
+        sk: {
+          field: "gsi1sk",
+          composite: ["dueDate", "id"],
+          template: "TASK#${dueDate}#${id}",
+        },
+      },
+    },
+  },
+  { client, table },
+)
+
 export const AiSettingsEntity = new Entity(
   {
     model: { entity: "AiSettings", service, version },
@@ -346,6 +384,7 @@ export const ContentService = new Service(
     draftVersion: DraftVersionEntity,
     postMetric: PostMetricEntity,
     insight: InsightEntity,
+    task: TaskEntity,
   },
   { client, table },
 )

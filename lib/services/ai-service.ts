@@ -1,10 +1,12 @@
 import { z } from "zod"
 import {
+  creatorTaskSchema,
   draftVersionSchema,
   insightSchema,
   monthlyPlanSchema,
   platformVariantSchema,
   type AccountDna,
+  type CreatorTask,
   type DraftVersion,
   type Insight,
   type MonthlyPlan,
@@ -25,6 +27,10 @@ export type GenerationResult<T> = {
 
 const hookOptionsResultSchema = z.object({
   hooks: z.array(z.string().min(2).max(180)).min(1).max(3),
+})
+
+const actionableTasksResultSchema = z.object({
+  tasks: z.array(creatorTaskSchema).min(2).max(3),
 })
 
 function normalizeVariant(detail: PostDetail, platform: PlatformId, variant: PlatformVariant) {
@@ -308,4 +314,73 @@ Metrics: ${JSON.stringify(metrics.slice(0, 12))}`
   }
 
   return { data: parsed.data, source: "openai" }
+}
+
+export async function generateActionableTasks(
+  workspaceId: string,
+  month: string,
+  plan: MonthlyPlan,
+  insights: Insight[],
+  metrics: PostMetric[],
+): Promise<GenerationResult<CreatorTask[]>> {
+  const now = new Date().toISOString()
+  const latestInsight = insights.at(-1) ?? demoInsights[0]
+  const fallback = [
+    creatorTaskSchema.parse({
+      id: `task-${month}-workflow-loop`,
+      workspaceId,
+      month,
+      title: "Package the strongest workflow insight into a post",
+      description:
+        "Turn the latest analytics insight into one concrete platform post that makes the planning, rewrite, status, metrics, and insight loop visible.",
+      sourceInsightId: latestInsight.id,
+      postId: plan.posts[0]?.id,
+      status: "open",
+      dueDate: `${month}-20`,
+      createdAt: now,
+      updatedAt: now,
+    }),
+    creatorTaskSchema.parse({
+      id: `task-${month}-metric-review`,
+      workspaceId,
+      month,
+      title: "Review metrics before the next content batch",
+      description:
+        "Compare top-view and top-save posts, then adjust the next batch around the platform that showed the clearest signal.",
+      sourceInsightId: latestInsight.id,
+      postId: metrics[0]?.postId,
+      status: "open",
+      dueDate: `${month}-22`,
+      createdAt: now,
+      updatedAt: now,
+    }),
+  ]
+  const prompt = `Convert these CreatorOS analytics insights into 2-3 actionable task cards.
+Return only JSON in this exact shape: {"tasks":[...]}.
+Each task must include id, workspaceId, month, title, description, sourceInsightId, optional postId, status, dueDate, createdAt, updatedAt.
+Use workspaceId "${workspaceId}", month "${month}", status "open", ISO timestamps, and dueDate in YYYY-MM-DD.
+Keep titles under 180 characters and descriptions under 600 characters.
+Plan posts: ${JSON.stringify(plan.posts.slice(0, 8).map((post) => ({ id: post.id, title: post.title, date: post.scheduledDate, platform: post.primaryPlatform })))}
+Insights: ${JSON.stringify(insights.slice(-3))}
+Metrics: ${JSON.stringify(metrics.slice(0, 12))}`
+  const generated = await requestJson(prompt)
+
+  if (!generated.ok) {
+    return { data: fallback, source: "fallback", warning: generated.warning }
+  }
+
+  const parsed = actionableTasksResultSchema.safeParse(generated.json)
+
+  if (!parsed.success) {
+    const retry = await requestJson(`${prompt}\nThe previous JSON failed validation. Return corrected JSON only.`)
+    const retryParsed = retry.ok ? actionableTasksResultSchema.safeParse(retry.json) : undefined
+
+    if (retryParsed?.success) {
+      return { data: retryParsed.data.tasks, source: "openai" }
+    }
+
+    return { data: fallback, source: "fallback", warning: "AI task generation failed schema validation." }
+  }
+
+  return { data: parsed.data.tasks, source: "openai" }
 }
