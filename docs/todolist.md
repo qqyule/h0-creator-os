@@ -66,9 +66,9 @@ This checklist is ordered around the MVP golden path:
 
 ### DynamoDB Design, Development, And Deployment
 
-- [ ] Finalize the workspace-scoped single-table model in `docs/dynamodb-plan.md`.
-- [ ] Create separate dev and production DynamoDB table configuration.
-- [ ] Configure table keys: `pk`, `sk`, `gsi1pk`, `gsi1sk`, `gsi2pk`, and `gsi2sk`.
+- [x] Finalize the workspace-scoped single-table model in `docs/dynamodb-plan.md`.
+- [x] Create separate dev and production DynamoDB table configuration.
+- [x] Configure table keys: `pk`, `sk`, `gsi1pk`, `gsi1sk`, `gsi2pk`, and `gsi2sk`.
 - [x] Use on-demand billing for the hackathon build.
 - [x] Define ElectroDB entities for Profile, MonthlyPlan, Post, PlatformVariant, DraftVersion, PostMetric, and Insight.
 - [x] Implement repository functions for profile, plan, post, variant, draft, status, metric, and insight access.

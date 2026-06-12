@@ -87,3 +87,11 @@ Use this file to record concise development progress. Do not paste raw chat tran
 - Verification: `pnpm typecheck` and `pnpm lint` passed before the documentation edits; `git diff --check` passed after these Markdown changes.
 - Risks or notes: This is documentation-only. Production Vercel deployment, least-privilege IAM smoke, real YouTube sync success, Vercel Team ID capture, storage screenshot capture, and public video publication remain external/private follow-up items.
 - Next: Deploy or verify the production Vercel URL, rerun the golden-path production smoke with dedicated runtime credentials, capture private evidence outside the repository, and record the public demo video.
+
+## 2026-06-12 - AWS Resource Diagnostics and Verification Succeeded
+
+- Goal: Verify that the Amazon DynamoDB table and S3 bucket meet the single-table model, keys, and index constraints, and confirm read/write connectivity.
+- Changed: Created `scripts/check-aws-resources.mjs` to validate table schemas (pk/sk keys, gsi1/gsi2 indexes) and test S3 read/write permissions. Updated project documents (`docs/todolist.md`, `docs/runtime-setup.md`, and `docs/development-log.md`) to reflect the verification status.
+- Verification: Ran `node scripts/check-aws-resources.mjs`. Verified that DynamoDB table `creatoros-prod-content` is `ACTIVE` with correct key and GSI structure, and S3 bucket `creatoros-prod-assets` is fully accessible with successful read/write/delete permission tests.
+- Risks or notes: Access credentials are verified on the developer machine. Double-check that these credentials match the least-privilege IAM policies configured in Vercel before finalizing deployment.
+- Next: Deploy the production Vercel URL, run production smoke tests, and capture final submission evidence.

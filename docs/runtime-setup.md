@@ -1,6 +1,6 @@
 # Runtime Setup
 
-Last updated: 2026-06-11
+Last updated: 2026-06-12
 
 This note documents the external resources needed after the P0 demo fallback is working locally. Do not commit real secrets or private account details.
 
@@ -80,3 +80,13 @@ After resource configuration, verify:
 - `POST /api/v1/analytics/insights`
 - `POST /api/v1/assets/presign` with an admin Clerk session
 - `POST /api/v1/notifications/test` with an admin Clerk session
+
+## Resource Verification
+
+On 2026-06-12, the AWS resources were fully verified locally using the custom diagnostics tool:
+- **DynamoDB Table**: `creatoros-prod-content` is `ACTIVE`.
+  - Partition Key: `pk`
+  - Sort Key: `sk`
+  - GSI1: `gsi1pk` (Partition Key), `gsi1sk` (Sort Key)
+  - GSI2: `gsi2pk` (Partition Key), `gsi2sk` (Sort Key)
+- **S3 Bucket**: `creatoros-prod-assets` is fully accessible with read, write, and delete permissions successfully validated (via `PutObject` and `DeleteObject` tests).
