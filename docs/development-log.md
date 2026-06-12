@@ -1,6 +1,6 @@
 # Development Log
 
-Last updated: 2026-06-11
+Last updated: 2026-06-12
 
 Use this file to record concise development progress. Do not paste raw chat transcripts or long planning dumps here.
 
@@ -79,3 +79,11 @@ Use this file to record concise development progress. Do not paste raw chat tran
 - Verification: `pnpm typecheck`, `pnpm lint`, `pnpm build`, `CREATOROS_BASE_URL=http://localhost:3112 pnpm smoke:main-path`, `POST /api/v1/posts/post-01/rewrite/hook`, `POST /api/v1/posts/post-01/rewrite` with `tone=Playful`, and Playwright desktop/mobile snapshots for `/post/post-01` covering LinkedIn, X, Rednote, hook generation, local hook apply, and tone rewrite.
 - Risks or notes: Local browser console still shows the known Vercel Analytics 404 outside Vercel. YouTube keeps the raw rewrite view because P1.6 only implements visual mockups for LinkedIn, X, and Rednote.
 - Next: Continue with P1.7 CSV S3 backup and actionable tasks, or switch to submission evidence if the product scope is frozen.
+
+## 2026-06-12 - P1.7 And Submission Pack Synchronized
+
+- Goal: Bring project documentation in line with the implemented P1.7 CSV/S3/task loop and prepare the first submission-facing evidence pack.
+- Changed: Marked P1.7 checklist items complete, added `docs/submission-pack.md` with Devpost draft copy, demo video script, Mermaid architecture draft, evidence checklist, and production smoke checklist.
+- Verification: `pnpm typecheck` and `pnpm lint` passed before the documentation edits; `git diff --check` passed after these Markdown changes.
+- Risks or notes: This is documentation-only. Production Vercel deployment, least-privilege IAM smoke, real YouTube sync success, Vercel Team ID capture, storage screenshot capture, and public video publication remain external/private follow-up items.
+- Next: Deploy or verify the production Vercel URL, rerun the golden-path production smoke with dedicated runtime credentials, capture private evidence outside the repository, and record the public demo video.

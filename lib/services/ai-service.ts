@@ -323,7 +323,14 @@ export async function generateActionableTasks(
   insights: Insight[],
   metrics: PostMetric[],
 ): Promise<GenerationResult<CreatorTask[]>> {
-  const now = new Date().toISOString()
+  const nowDate = new Date()
+  const now = nowDate.toISOString()
+  /** 根据当前日期动态推算截止时间，避免硬编码月内日期在跨月场景下立即过期 */
+  const offsetDays = (days: number) => {
+    const d = new Date(nowDate)
+    d.setDate(d.getDate() + days)
+    return d.toISOString().slice(0, 10)
+  }
   const latestInsight = insights.at(-1) ?? demoInsights[0]
   const fallback = [
     creatorTaskSchema.parse({
@@ -336,7 +343,7 @@ export async function generateActionableTasks(
       sourceInsightId: latestInsight.id,
       postId: plan.posts[0]?.id,
       status: "open",
-      dueDate: `${month}-20`,
+      dueDate: offsetDays(5),
       createdAt: now,
       updatedAt: now,
     }),
@@ -350,7 +357,7 @@ export async function generateActionableTasks(
       sourceInsightId: latestInsight.id,
       postId: metrics[0]?.postId,
       status: "open",
-      dueDate: `${month}-22`,
+      dueDate: offsetDays(7),
       createdAt: now,
       updatedAt: now,
     }),

@@ -27,7 +27,14 @@ export async function createPresignedUpload(input: {
   const config = getS3Config()
   const client = getS3Client()
   const safeName = input.fileName.replace(/[^a-zA-Z0-9._-]/g, "-")
-  const key = `${input.workspaceId}/${input.purpose}/${Date.now()}-${safeName}`
+  /** 将 purpose 映射为 S3 文件夹名，使 metrics-import 对应文档约定的 imports/ 目录 */
+  const folderByPurpose: Record<typeof input.purpose, string> = {
+    "metrics-import": "imports",
+    export: "exports",
+    asset: "assets",
+  }
+  const folder = folderByPurpose[input.purpose]
+  const key = `${input.workspaceId}/${folder}/${Date.now()}-${safeName}`
 
   if (!config.configured || !client || !config.bucket) {
     return {

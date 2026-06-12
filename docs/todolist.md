@@ -1,6 +1,6 @@
 # TODO List
 
-Last updated: 2026-06-11
+Last updated: 2026-06-12
 
 This checklist is ordered around the MVP golden path:
 
@@ -129,8 +129,8 @@ This checklist is ordered around the MVP golden path:
 
 ### Submission Evidence
 
-- [ ] Add YouTube Data API v3 to the architecture diagram as an optional external data source.
-- [ ] Mention no-auth public data sync in Devpost description as a differentiated feature.
+- [x] Add YouTube Data API v3 to the architecture diagram as an optional external data source.
+- [x] Mention no-auth public data sync in Devpost description as a differentiated feature.
 
 ## P1.6 - Premium UI & Tone Sandbox
 
@@ -150,21 +150,21 @@ This checklist is ordered around the MVP golden path:
 ## P1.7 - CSV S3 Backup & Actionable Tasks
 
 ### S3 & CSV Import
-- [ ] Provide CSV template download (`/public/templates/creatoros-metrics-template.csv`).
-- [ ] Add dropzone UI in `/analytics` for CSV selection and parsing.
-- [ ] Use `assets/presign` to fetch a signed upload URL and store raw CSV in S3 under `imports/`.
-- [ ] Map parsed CSV rows to post metrics entities.
-- [ ] Show a preview delta comparison table before committing parsed data.
+- [x] Provide CSV template download (`/public/templates/creatoros-metrics-template.csv`).
+- [x] Add dropzone UI in `/analytics` for CSV selection and parsing.
+- [x] Use `assets/presign` to fetch a signed upload URL and store raw CSV in S3 under `imports/`.
+- [x] Map parsed CSV rows to post metrics entities.
+- [x] Show a preview delta comparison table before committing parsed data.
 
 ### Closed Loop Tasks
-- [ ] Define Task Entity / model for workspace action items if it is separate from posts.
-- [ ] Create `/api/v1/analytics/insights/actionable` (POST) to extract task items from AI insights text.
-- [ ] Save generated tasks through the content repository layer.
-- [ ] Render action items as checkout cards on `/dashboard` and task marks on `/calendar`.
+- [x] Define Task Entity / model for workspace action items if it is separate from posts.
+- [x] Create `/api/v1/analytics/insights/actionable` (POST) to extract task items from AI insights text.
+- [x] Save generated tasks through the content repository layer.
+- [x] Render action items as checkout cards on `/dashboard` and task marks on `/calendar`.
 
 ## Submission
 
-- [ ] Re-check official H0 rules and resources before final submission.
+- [x] Re-check official H0 rules and resources before final submission.
 - [ ] Deploy the production Vercel URL.
 - [x] Verify guest/demo workspace without private credentials.
 - [x] Confirm Clerk login does not block the judge demo path.
@@ -172,9 +172,9 @@ This checklist is ordered around the MVP golden path:
 - [x] Verify Resend smoke path with a safe test recipient or non-production route.
 - [ ] Reset or reseed demo data before recording and submission.
 - [ ] Freeze judge-facing navigation names before video recording.
-- [ ] Create architecture diagram with Browser, Vercel, AI service, DynamoDB, S3, Resend, Clerk, and deploy flow.
-- [ ] Write Devpost description in English and explain DynamoDB single-table and access-pattern design.
-- [ ] Include DynamoDB runtime proof in the demo script: persisted demo workspace, GSI timeline/status reads, and conditional status updates.
+- [/] Create architecture diagram with Browser, Vercel, AI service, DynamoDB, S3, Resend, Clerk, and deploy flow. Draft is in `docs/submission-pack.md`; exportable visual still pending.
+- [x] Write Devpost description in English and explain DynamoDB single-table and access-pattern design.
+- [x] Include DynamoDB runtime proof in the demo script: persisted demo workspace, GSI timeline/status reads, and conditional status updates.
 - [ ] Capture storage configuration screenshot outside the repository.
 - [ ] Record Vercel Team ID outside the repository.
 - [ ] Record and publish a demo video under 3 minutes.
