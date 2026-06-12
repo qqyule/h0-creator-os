@@ -148,9 +148,9 @@ Repo-safe evidence:
 
 Private or external evidence still needed:
 
-- [ ] Production Vercel URL.
+- [x] Production Vercel URL.
 - [ ] Vercel Team ID recorded outside the repository.
-- [ ] Storage Configuration or AWS DynamoDB proof screenshot captured outside the repository.
+- [x] Storage Configuration or AWS DynamoDB proof screenshot captured outside the repository.
 - [ ] Production smoke with least-privilege IAM identity.
 - [ ] Real YouTube sync success smoke with `GOOGLE_PUBLIC_API_KEY`.
 - [ ] Public demo video URL under 3 minutes.
@@ -160,18 +160,18 @@ Private or external evidence still needed:
 
 Run this after deployment and after environment variables are configured:
 
-- [ ] Open production `/dashboard` without signing in and confirm the demo workspace loads.
-- [ ] Open `/calendar` and verify the monthly timeline.
-- [ ] Open `/post/post-01` and save a platform variant.
-- [ ] Update post status and verify the conditional write path does not silently overwrite stale state.
-- [ ] Save manual metrics from post detail.
+- [x] Open production `/dashboard` without signing in and confirm the demo workspace loads.
+- [x] Open `/calendar` and verify the monthly timeline.
+- [x] Open `/post/post-01` and save a platform variant.
+- [x] Update post status and verify the conditional write path does not silently overwrite stale state.
+- [x] Save manual metrics from post detail.
 - [ ] Import CSV metrics from `/analytics` and verify the raw CSV is backed up through S3 when configured.
-- [ ] Generate insights from `/analytics`.
-- [ ] Generate actionable tasks and confirm they appear on `/dashboard` and `/calendar`.
+- [x] Generate insights from `/analytics`.
+- [x] Generate actionable tasks and confirm they appear on `/dashboard` and `/calendar`.
 - [ ] Run YouTube live stats sync with a public video ID when `GOOGLE_PUBLIC_API_KEY` is configured.
-- [ ] Confirm `/settings` is protected by Clerk when Clerk keys are configured.
+- [x] Confirm `/settings` is protected by Clerk when Clerk keys are configured.
 - [ ] Run Resend smoke with a safe test recipient.
-- [ ] Confirm no server secrets, AWS credentials, Resend keys, Google API key, or Vercel Team ID are visible in client code or public docs.
+- [x] Confirm no server secrets, AWS credentials, Resend keys, Google API key, or Vercel Team ID are visible in client code or public docs.
 
 ## Bonus Content Draft Angles
 

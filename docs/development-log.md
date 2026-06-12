@@ -95,3 +95,11 @@ Use this file to record concise development progress. Do not paste raw chat tran
 - Verification: Ran `node scripts/check-aws-resources.mjs`. Verified that DynamoDB table `creatoros-prod-content` is `ACTIVE` with correct key and GSI structure, and S3 bucket `creatoros-prod-assets` is fully accessible with successful read/write/delete permission tests.
 - Risks or notes: Access credentials are verified on the developer machine. Double-check that these credentials match the least-privilege IAM policies configured in Vercel before finalizing deployment.
 - Next: Deploy the production Vercel URL, run production smoke tests, and capture final submission evidence.
+
+## 2026-06-12 - Production Vercel Deployment And Evidence Bundle
+
+- Goal: Deploy CreatorOS to production, verify the real URL, and capture submission-safe evidence outside the repository.
+- Changed: Linked the local project to Vercel project `creatoros`, imported production environment variables from `.env.prod`, deployed the production URL, replaced the production smoke script with a real-URL-only checker, and updated submission checklists with verified results only.
+- Verification: `pnpm typecheck`, `pnpm lint`, `pnpm build`, `git diff --check`, `vercel whoami`, `vercel link --project creatoros --yes`, `vercel env ls production`, `vercel deploy --prod --yes --logs`, `CREATOROS_BASE_URL=https://creatoros-six.vercel.app pnpm smoke:production`, secret exposure scan for tracked files plus `.next/static`, and final `DEMO#judge` reseed all completed.
+- Risks or notes: YouTube live sync was skipped because `GOOGLE_PUBLIC_API_KEY` is not configured in production. S3 `PutObject` works, but the current IAM identity cannot `HeadBucket`, `ListBucket`, or `DeleteObject`; a temporary smoke object remains under `smoke/` and should be cleaned up after IAM policy adjustment.
+- Next: Record Vercel Team ID outside the repository, clean up the temporary S3 smoke object after granting delete permission or using an owner/admin identity, record the demo video, and publish optional bonus content.

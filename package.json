@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit --pretty false",
-    "smoke:main-path": "node scripts/smoke-main-path.mjs"
+    "smoke:main-path": "node scripts/smoke-main-path.mjs",
+    "smoke:production": "node scripts/smoke-production.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.1064.0",

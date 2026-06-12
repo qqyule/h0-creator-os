@@ -78,7 +78,7 @@ This checklist is ordered around the MVP golden path:
 - [x] Add a deterministic seed path for the `DEMO#judge` workspace.
 - [x] Store `AWS_REGION`, `CREATOROS_TABLE_NAME`, and AWS credentials in Vercel environment variables only.
 - [ ] Use least-privilege IAM for runtime DynamoDB access and avoid unrestricted production `Scan`.
-- [ ] Run a deployment smoke flow that reads profile, reads plan, opens a post, saves a variant, updates status, saves metrics, and reads insights.
+- [x] Run a deployment smoke flow that reads profile, reads plan, opens a post, saves a variant, updates status, saves metrics, and reads insights.
 - [x] Capture DynamoDB design evidence for the architecture diagram and Devpost explanation.
 
 ## P1 - Quality And Maintainability
@@ -165,17 +165,17 @@ This checklist is ordered around the MVP golden path:
 ## Submission
 
 - [x] Re-check official H0 rules and resources before final submission.
-- [ ] Deploy the production Vercel URL.
+- [x] Deploy the production Vercel URL.
 - [x] Verify guest/demo workspace without private credentials.
 - [x] Confirm Clerk login does not block the judge demo path.
 - [x] Verify S3 flow without exposing bucket credentials.
 - [x] Verify Resend smoke path with a safe test recipient or non-production route.
-- [ ] Reset or reseed demo data before recording and submission.
+- [x] Reset or reseed demo data before recording and submission.
 - [ ] Freeze judge-facing navigation names before video recording.
 - [/] Create architecture diagram with Browser, Vercel, AI service, DynamoDB, S3, Resend, Clerk, and deploy flow. Draft is in `docs/submission-pack.md`; exportable visual still pending.
 - [x] Write Devpost description in English and explain DynamoDB single-table and access-pattern design.
 - [x] Include DynamoDB runtime proof in the demo script: persisted demo workspace, GSI timeline/status reads, and conditional status updates.
-- [ ] Capture storage configuration screenshot outside the repository.
+- [x] Capture storage configuration screenshot outside the repository.
 - [ ] Record Vercel Team ID outside the repository.
 - [ ] Record and publish a demo video under 3 minutes.
 - [ ] Publish up to 3 bonus content links with required hackathon attribution or hashtag.
