@@ -17,6 +17,7 @@ Required for authenticated or persisted runtime:
 - S3: `CREATOROS_S3_BUCKET`
 - Resend: `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, `RESEND_TEST_RECIPIENT`
 - OpenAI-compatible generation: `OPENAI_API_KEY`, optional `OPENAI_BASE_URL`, optional `OPENAI_MODEL`
+- Optional env-only AI fallback provider: `OPENAI_FALLBACK_API_KEY`, optional `OPENAI_FALLBACK_BASE_URL`, optional `OPENAI_FALLBACK_MODEL`
 - AI settings page secret storage: `AI_CONFIG_ENCRYPTION_KEY`
 - Optional YouTube live metrics sync: `GOOGLE_PUBLIC_API_KEY`
 
@@ -28,7 +29,9 @@ The UI uses `next-intl` with `en-US` as the default locale and `zh-CN` as the se
 
 `CREATOROS_ADMIN_CLERK_USER_IDS` is a comma-separated allowlist of Clerk user IDs that can call AI settings, S3 presign, and Resend smoke endpoints. If it is missing, those admin endpoints return `403`.
 
-The AI settings page stores encrypted provider settings in DynamoDB through the `AiSettings` ElectroDB entity. Saving settings requires DynamoDB configuration; reading settings falls back to `OPENAI_*` environment variables when no saved config exists.
+The AI settings page stores encrypted primary provider settings in DynamoDB through the `AiSettings` ElectroDB entity. Saving settings requires DynamoDB configuration; reading settings falls back to `OPENAI_*` environment variables when no saved primary config exists. `OPENAI_FALLBACK_*` is optional, server-side only, and is not exposed in the admin settings UI.
+
+AI generation tries the saved primary provider first, then the optional fallback provider. Provider responses are validated before persistence; if all providers fail, the workflow returns a safe editable demo draft instead of blocking the judge path.
 
 YouTube live metrics sync uses the public YouTube Data API v3 `videos.list` endpoint from a server route. If `GOOGLE_PUBLIC_API_KEY` is missing or the API call fails, the post detail page keeps manual metric entry available.
 

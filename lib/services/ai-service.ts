@@ -20,11 +20,11 @@ import {
   type ToneSandbox,
 } from "@/lib/domain"
 import { DEMO_MONTH, demoInsights, demoPlan } from "@/lib/demo-data"
-import { AiSettingsError, resolveAiProviderConfig } from "@/lib/ai-settings"
+import { requestAiJson, type AiJsonSource } from "@/lib/services/ai-client"
 
 export type GenerationResult<T> = {
   data: T
-  source: "openai" | "fallback"
+  source: AiJsonSource | "fallback"
   warning?: string
 }
 
@@ -51,68 +51,7 @@ function normalizeVariant(detail: PostDetail, platform: PlatformId, variant: Pla
   })
 }
 
-async function requestJson(prompt: string) {
-  let config: Awaited<ReturnType<typeof resolveAiProviderConfig>>
-
-  try {
-    config = await resolveAiProviderConfig()
-  } catch (error) {
-    if (error instanceof AiSettingsError) {
-      return { ok: false as const, warning: error.message }
-    }
-
-    return { ok: false as const, warning: "OpenAI-compatible API is not configured." }
-  }
-
-  let response: Response
-
-  try {
-    response = await fetch(`${config.baseUrl.replace(/\/$/, "")}/chat/completions`, {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        authorization: `Bearer ${config.apiKey}`,
-      },
-      signal: AbortSignal.timeout(20_000),
-      body: JSON.stringify({
-        model: config.model,
-        response_format: { type: "json_object" },
-        messages: [
-          {
-            role: "system",
-            content:
-              "You are CreatorOS. Return only valid JSON that matches the requested schema. Do not include markdown.",
-          },
-          {
-            role: "user",
-            content: prompt,
-          },
-        ],
-      }),
-    })
-  } catch {
-    return { ok: false as const, warning: "AI provider request failed." }
-  }
-
-  if (!response.ok) {
-    return { ok: false as const, warning: `AI provider returned ${response.status}.` }
-  }
-
-  const payload = (await response.json()) as {
-    choices?: Array<{ message?: { content?: string } }>
-  }
-  const content = payload.choices?.[0]?.message?.content
-
-  if (!content) {
-    return { ok: false as const, warning: "AI provider returned an empty response." }
-  }
-
-  try {
-    return { ok: true as const, json: JSON.parse(content) as unknown }
-  } catch {
-    return { ok: false as const, warning: "AI provider returned invalid JSON." }
-  }
-}
+const requestJson = requestAiJson
 
 export async function generateMonthlyPlan(profile: AccountDna, month = DEMO_MONTH): Promise<GenerationResult<MonthlyPlan>> {
   const fallback = monthlyPlanSchema.parse({
@@ -142,16 +81,19 @@ Each post must include id, workspaceId, month, scheduledDate, title, format, goa
 
   if (!parsed.success) {
     const retry = await requestJson(`${prompt}\nThe previous JSON did not match the schema. Return corrected JSON only.`)
-    const retryParsed = retry.ok ? monthlyPlanSchema.safeParse(retry.json) : undefined
 
-    if (retryParsed?.success) {
-      return { data: retryParsed.data, source: "openai" }
+    if (retry.ok) {
+      const retryParsed = monthlyPlanSchema.safeParse(retry.json)
+
+      if (retryParsed.success) {
+        return { data: retryParsed.data, source: retry.source }
+      }
     }
 
     return { data: fallback, source: "fallback", warning: "AI output failed schema validation." }
   }
 
-  return { data: parsed.data, source: "openai" }
+  return { data: parsed.data, source: generated.source }
 }
 
 export async function generatePlatformRewrite(
@@ -203,16 +145,19 @@ Use status "generated" and ISO updatedAt.`
 
   if (!parsed.success) {
     const retry = await requestJson(`${prompt}\nThe previous JSON failed validation. Return corrected JSON only.`)
-    const retryParsed = retry.ok ? platformVariantSchema.safeParse(retry.json) : undefined
 
-    if (retryParsed?.success) {
-      return { data: normalizeVariant(detail, platform, retryParsed.data), source: "openai" }
+    if (retry.ok) {
+      const retryParsed = platformVariantSchema.safeParse(retry.json)
+
+      if (retryParsed.success) {
+        return { data: normalizeVariant(detail, platform, retryParsed.data), source: retry.source }
+      }
     }
 
     return { data: fallback, source: "fallback", warning: "AI rewrite failed schema validation." }
   }
 
-  return { data: normalizeVariant(detail, platform, parsed.data), source: "openai" }
+  return { data: normalizeVariant(detail, platform, parsed.data), source: generated.source }
 }
 
 export async function generateCarouselSlides(detail: PostDetail, title?: string): Promise<GenerationResult<CarouselSlide[]>> {
@@ -247,16 +192,19 @@ Outline: ${detail.post.outline.join(" | ")}`
 
   if (!parsed.success) {
     const retry = await requestJson(`${prompt}\nThe previous JSON failed validation. Return corrected JSON only.`)
-    const retryParsed = retry.ok ? carouselSlidesResultSchema.safeParse(retry.json) : undefined
 
-    if (retryParsed?.success) {
-      return { data: retryParsed.data.slides, source: "openai" }
+    if (retry.ok) {
+      const retryParsed = carouselSlidesResultSchema.safeParse(retry.json)
+
+      if (retryParsed.success) {
+        return { data: retryParsed.data.slides, source: retry.source }
+      }
     }
 
     return { data: fallback, source: "fallback", warning: "AI carousel generation failed schema validation." }
   }
 
-  return { data: parsed.data.slides, source: "openai" }
+  return { data: parsed.data.slides, source: generated.source }
 }
 
 export async function generateHookOptions(
@@ -286,16 +234,19 @@ Current body: ${sourceText}`
 
   if (!parsed.success) {
     const retry = await requestJson(`${prompt}\nThe previous JSON failed validation. Return corrected JSON only.`)
-    const retryParsed = retry.ok ? hookOptionsResultSchema.safeParse(retry.json) : undefined
 
-    if (retryParsed?.success) {
-      return { data: retryParsed.data.hooks.slice(0, 3), source: "openai" }
+    if (retry.ok) {
+      const retryParsed = hookOptionsResultSchema.safeParse(retry.json)
+
+      if (retryParsed.success) {
+        return { data: retryParsed.data.hooks.slice(0, 3), source: retry.source }
+      }
     }
 
     return { data: fallback, source: "fallback", warning: "AI hook generation failed schema validation." }
   }
 
-  return { data: parsed.data.hooks.slice(0, 3), source: "openai" }
+  return { data: parsed.data.hooks.slice(0, 3), source: generated.source }
 }
 
 export async function generateDraft(detail: PostDetail, platform: PlatformId): Promise<GenerationResult<DraftVersion>> {
@@ -322,7 +273,7 @@ Version: ${detail.drafts.length + 1}`
     return { data: fallback, source: "fallback", warning: "AI draft failed schema validation." }
   }
 
-  return { data: parsed.data, source: "openai" }
+  return { data: parsed.data, source: generated.source }
 }
 
 export async function generateInsight(
@@ -368,7 +319,7 @@ Metrics: ${JSON.stringify(metrics.slice(0, 12))}`
     return { data: fallback, source: "fallback", warning: "AI insight failed schema validation." }
   }
 
-  return { data: parsed.data, source: "openai" }
+  return { data: parsed.data, source: generated.source }
 }
 
 export async function generateActionableTasks(
@@ -435,14 +386,17 @@ Metrics: ${JSON.stringify(metrics.slice(0, 12))}`
 
   if (!parsed.success) {
     const retry = await requestJson(`${prompt}\nThe previous JSON failed validation. Return corrected JSON only.`)
-    const retryParsed = retry.ok ? actionableTasksResultSchema.safeParse(retry.json) : undefined
 
-    if (retryParsed?.success) {
-      return { data: retryParsed.data.tasks, source: "openai" }
+    if (retry.ok) {
+      const retryParsed = actionableTasksResultSchema.safeParse(retry.json)
+
+      if (retryParsed.success) {
+        return { data: retryParsed.data.tasks, source: retry.source }
+      }
     }
 
     return { data: fallback, source: "fallback", warning: "AI task generation failed schema validation." }
   }
 
-  return { data: parsed.data.tasks, source: "openai" }
+  return { data: parsed.data.tasks, source: generated.source }
 }

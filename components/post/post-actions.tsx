@@ -25,6 +25,8 @@ type ApiResult<T> = {
   error?: { message: string }
 }
 
+type GenerationSource = "openai" | "provider-fallback" | "fallback"
+
 export function RewritePanel({
   post,
   initialVariants,
@@ -66,7 +68,7 @@ export function RewritePanel({
         body: JSON.stringify({ platform, tone: toneOverride }),
       })
       const result = (await response.json()) as ApiResult<{
-        generation: { data: PlatformVariant; source: "openai" | "fallback"; warning?: string }
+        generation: { data: PlatformVariant; source: GenerationSource; warning?: string }
       }>
 
       if (!result.ok || !result.data) {
@@ -89,7 +91,7 @@ export function RewritePanel({
       })
       const result = (await response.json()) as ApiResult<{
         hooks: string[]
-        source: "openai" | "fallback"
+        source: GenerationSource
         warning?: string
       }>
 
@@ -441,7 +443,7 @@ export function CarouselExportPanel({ post }: { post: Post }) {
       })
       const result = (await response.json()) as ApiResult<{
         downloadPath: string
-        generation: { source: "openai" | "fallback"; warning?: string }
+        generation: { source: GenerationSource; warning?: string }
       }>
 
       if (!result.ok || !result.data) {

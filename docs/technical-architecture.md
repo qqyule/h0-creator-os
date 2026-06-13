@@ -37,7 +37,9 @@ Browser UI -> Clerk-authenticated Next.js route or server action -> service laye
 
 AI generation should run server-side only:
 
-Browser UI -> server route/action -> AI service -> schema validation -> repository write through ElectroDB -> typed response.
+Browser UI -> server route/action -> AI service -> primary provider -> optional env fallback provider -> schema validation -> repository write through ElectroDB -> typed response.
+
+The fallback AI provider is configured only with `OPENAI_FALLBACK_*` server environment variables. It is not stored in DynamoDB and is not editable from Client Components.
 
 File operations should use server-side S3 SDK code or short-lived presigned URLs. Email notifications should go through server-side Resend services.
 

@@ -12,6 +12,8 @@ type ApiResult<T> = {
   error?: { message: string }
 }
 
+type GenerationSource = "openai" | "provider-fallback" | "fallback"
+
 export function InsightGenerator({ month }: { month: string }) {
   const t = useTranslations("insightGenerator")
   const [isPending, startTransition] = useTransition()
@@ -27,7 +29,7 @@ export function InsightGenerator({ month }: { month: string }) {
         body: JSON.stringify({ month }),
       })
       const result = (await response.json()) as ApiResult<{
-        generation: { data: Insight; source: "openai" | "fallback"; warning?: string }
+        generation: { data: Insight; source: GenerationSource; warning?: string }
       }>
 
       if (!result.ok || !result.data) {

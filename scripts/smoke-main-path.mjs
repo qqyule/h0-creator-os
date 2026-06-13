@@ -96,6 +96,19 @@ if (idea?.idea?.id) {
 
 await checkJson("GET", "/api/v1/analytics/best-times", undefined, (data) => Array.isArray(data?.recommendations))
 
+await checkJson("POST", "/api/v1/posts/post-01/rewrite", {
+  platform: "x",
+  tone: "Analytic",
+}, (data) => Boolean(data?.generation?.data?.body))
+
+await checkJson("POST", "/api/v1/posts/post-01/rewrite/hook", {
+  platform: "x",
+}, (data) => Array.isArray(data?.hooks) && data.hooks.length > 0)
+
+await checkJson("POST", "/api/v1/analytics/insights", {
+  month: "2026-06",
+}, (data) => Boolean(data?.generation?.data?.summary))
+
 const post = postData?.detail?.post
 await checkJson("PATCH", "/api/v1/posts/post-01/schedule", {
   scheduledDate: "2026-06-03",

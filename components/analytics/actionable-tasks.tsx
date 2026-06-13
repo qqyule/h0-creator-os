@@ -12,6 +12,8 @@ type ApiResult<T> = {
   error?: { message: string }
 }
 
+type GenerationSource = "openai" | "provider-fallback" | "fallback"
+
 export function ActionableTasksPanel({ month, initialTasks }: { month: string; initialTasks: CreatorTask[] }) {
   const t = useTranslations("analytics.tasks")
   const [tasks, setTasks] = useState(initialTasks)
@@ -27,7 +29,7 @@ export function ActionableTasksPanel({ month, initialTasks }: { month: string; i
         body: JSON.stringify({ month }),
       })
       const result = (await response.json()) as ApiResult<{
-        generation: { data: CreatorTask[]; source: "openai" | "fallback"; warning?: string }
+        generation: { data: CreatorTask[]; source: GenerationSource; warning?: string }
         saved: { tasks: CreatorTask[] }
       }>
 
