@@ -1,0 +1,139 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000" role="img" aria-labelledby="title desc">
+  <title id="title">CreatorOS Architecture Diagram</title>
+  <desc id="desc">CreatorOS browser, Vercel Next.js application, route handlers, repository layer, ElectroDB, DynamoDB, S3, Clerk, Resend, AI provider, YouTube Data API, and deploy flow.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M2,2 L10,6 L2,10 Z" fill="#334155"/>
+    </marker>
+    <filter id="shadow" x="-12%" y="-12%" width="124%" height="124%">
+      <feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#0f172a" flood-opacity="0.13"/>
+    </filter>
+    <style>
+      .bg { fill: #f8fafc; }
+      .title { font-family: Arial, Helvetica, sans-serif; font-size: 42px; font-weight: 700; fill: #0f172a; }
+      .subtitle { font-family: Arial, Helvetica, sans-serif; font-size: 18px; font-weight: 500; fill: #475569; }
+      .group-label { font-family: Arial, Helvetica, sans-serif; font-size: 18px; font-weight: 700; fill: #334155; letter-spacing: 0; }
+      .node-title { font-family: Arial, Helvetica, sans-serif; font-size: 20px; font-weight: 700; fill: #111827; }
+      .node-text { font-family: Arial, Helvetica, sans-serif; font-size: 15px; font-weight: 500; fill: #475569; }
+      .small { font-family: Arial, Helvetica, sans-serif; font-size: 13px; font-weight: 500; fill: #64748b; }
+      .card { fill: #ffffff; stroke: #cbd5e1; stroke-width: 2; filter: url(#shadow); }
+      .card-blue { fill: #eff6ff; stroke: #93c5fd; }
+      .card-green { fill: #ecfdf5; stroke: #86efac; }
+      .card-amber { fill: #fffbeb; stroke: #fcd34d; }
+      .card-red { fill: #fef2f2; stroke: #fca5a5; }
+      .card-violet { fill: #f5f3ff; stroke: #c4b5fd; }
+      .aws-box { fill: none; stroke: #f59e0b; stroke-width: 3; stroke-dasharray: 12 8; }
+      .deploy-box { fill: #ffffff; stroke: #94a3b8; stroke-width: 2; stroke-dasharray: 8 8; }
+      .line { stroke: #334155; stroke-width: 3; fill: none; marker-end: url(#arrow); }
+      .line-soft { stroke: #64748b; stroke-width: 2.5; fill: none; marker-end: url(#arrow); }
+      .arrowhead { fill: #334155; }
+      .arrowhead-soft { fill: #64748b; }
+      .badge { fill: #0f172a; }
+      .badge-text { font-family: Arial, Helvetica, sans-serif; font-size: 12px; font-weight: 700; fill: #ffffff; letter-spacing: 0; }
+    </style>
+  </defs>
+
+  <rect class="bg" width="1600" height="1000"/>
+
+  <text class="title" x="80" y="84">CreatorOS Architecture</text>
+  <text class="subtitle" x="82" y="118">English-first B2B content operations loop on Vercel with Amazon DynamoDB as the primary backend.</text>
+
+  <rect class="deploy-box" x="78" y="150" width="1444" height="140" rx="18"/>
+  <text class="group-label" x="110" y="184">Deploy Flow</text>
+  <rect class="card card-blue" x="110" y="205" width="270" height="58" rx="12"/>
+  <text class="node-title" x="132" y="237">GitHub / Vercel Deploy</text>
+  <text class="node-text" x="132" y="258">production build and env vars</text>
+  <line class="line-soft" x1="385" y1="234" x2="515" y2="234"/>
+  <rect class="card" x="525" y="205" width="280" height="58" rx="12"/>
+  <text class="node-title" x="547" y="237">Vercel Project</text>
+  <text class="node-text" x="547" y="258">published demo URL</text>
+  <line class="line-soft" x1="810" y1="234" x2="955" y2="234"/>
+  <rect class="card card-amber" x="965" y="205" width="300" height="58" rx="12"/>
+  <text class="node-title" x="987" y="237">Vercel Env Variables</text>
+  <text class="node-text" x="987" y="258">AWS, Clerk, Resend, AI keys</text>
+
+  <rect class="card" x="80" y="390" width="320" height="120" rx="16"/>
+  <text class="node-title" x="112" y="433">Browser</text>
+  <text class="node-text" x="112" y="459">CreatorOS UI</text>
+  <text class="small" x="112" y="482">dashboard, calendar, post, analytics</text>
+
+  <rect class="card card-blue" x="440" y="355" width="285" height="150" rx="16"/>
+  <text class="node-title" x="472" y="398">Vercel</text>
+  <text class="node-text" x="472" y="424">Next.js App Router</text>
+  <text class="small" x="472" y="447">server components, proxy, pages</text>
+  <rect class="badge" x="472" y="463" width="122" height="28" rx="14"/>
+  <text class="badge-text" x="491" y="482">free demo path</text>
+
+  <rect class="card card-blue" x="820" y="355" width="285" height="150" rx="16"/>
+  <text class="node-title" x="852" y="398">Route Handlers</text>
+  <text class="node-text" x="852" y="424">/api/v1/*</text>
+  <text class="small" x="852" y="447">typed ok/data/error responses</text>
+  <text class="small" x="852" y="472">server-side credentials only</text>
+
+  <rect class="card" x="820" y="590" width="285" height="128" rx="16"/>
+  <text class="node-title" x="852" y="633">Repository Layer</text>
+  <text class="node-text" x="852" y="659">typed domain functions</text>
+  <text class="small" x="852" y="682">workspace-scoped data access</text>
+
+  <rect class="card" x="1180" y="590" width="285" height="128" rx="16"/>
+  <text class="node-title" x="1212" y="633">ElectroDB Entities</text>
+  <text class="node-text" x="1212" y="659">single-table access patterns</text>
+  <text class="small" x="1212" y="682">profiles, posts, metrics, tasks</text>
+
+  <rect class="aws-box" x="1130" y="335" width="390" height="560" rx="22"/>
+  <text class="group-label" x="1162" y="374">AWS</text>
+
+  <rect class="card card-amber" x="1180" y="770" width="285" height="96" rx="16"/>
+  <text class="node-title" x="1212" y="811">Amazon DynamoDB</text>
+  <text class="node-text" x="1212" y="837">primary backend</text>
+  <text class="small" x="1212" y="858">pk/sk + timeline/status GSIs</text>
+
+  <rect class="card card-amber" x="1180" y="408" width="285" height="96" rx="16"/>
+  <text class="node-title" x="1212" y="449">Amazon S3</text>
+  <text class="node-text" x="1212" y="475">CSV import backup</text>
+  <text class="small" x="1212" y="496">scoped presigned uploads</text>
+
+  <rect class="card card-violet" x="440" y="590" width="285" height="120" rx="16"/>
+  <text class="node-title" x="472" y="633">Clerk</text>
+  <text class="node-text" x="472" y="659">user/session identity</text>
+  <text class="small" x="472" y="682">settings protected, demo public</text>
+
+  <rect class="card card-green" x="440" y="775" width="285" height="96" rx="16"/>
+  <text class="node-title" x="472" y="816">Resend</text>
+  <text class="node-text" x="472" y="842">notification smoke path</text>
+
+  <rect class="card card-red" x="80" y="590" width="255" height="120" rx="16"/>
+  <text class="node-title" x="112" y="633">AI Provider</text>
+  <text class="node-text" x="112" y="659">OpenAI-compatible</text>
+  <text class="small" x="112" y="682">plan, rewrite, insight, tasks</text>
+
+  <rect class="card" x="80" y="775" width="255" height="96" rx="16"/>
+  <text class="node-title" x="112" y="816">YouTube Data API</text>
+  <text class="node-text" x="112" y="842">optional public metrics sync</text>
+
+  <line class="line" x1="400" y1="450" x2="430" y2="430"/>
+  <line class="line" x1="725" y1="430" x2="810" y2="430"/>
+  <line class="line" x1="962" y1="506" x2="962" y2="580"/>
+  <line class="line" x1="1105" y1="654" x2="1170" y2="654"/>
+  <line class="line" x1="1322" y1="718" x2="1322" y2="760"/>
+  <line class="line-soft" x1="1105" y1="430" x2="1170" y2="456"/>
+  <line class="line-soft" x1="820" y1="405" x2="735" y2="630"/>
+  <line class="line-soft" x1="820" y1="470" x2="345" y2="630"/>
+  <line class="line-soft" x1="820" y1="485" x2="735" y2="815"/>
+  <line class="line-soft" x1="820" y1="455" x2="345" y2="820"/>
+
+  <polygon class="arrowhead-soft" points="-13,-7 0,0 -13,7" transform="translate(515 234)"/>
+  <polygon class="arrowhead-soft" points="-13,-7 0,0 -13,7" transform="translate(955 234)"/>
+  <polygon class="arrowhead" points="-13,-7 0,0 -13,7" transform="translate(430 430) rotate(-34)"/>
+  <polygon class="arrowhead" points="-13,-7 0,0 -13,7" transform="translate(810 430)"/>
+  <polygon class="arrowhead" points="-7,-13 0,0 7,-13" transform="translate(962 580)"/>
+  <polygon class="arrowhead" points="-13,-7 0,0 -13,7" transform="translate(1170 654)"/>
+  <polygon class="arrowhead" points="-7,-13 0,0 7,-13" transform="translate(1322 760)"/>
+  <polygon class="arrowhead-soft" points="-13,-7 0,0 -13,7" transform="translate(1170 456) rotate(22)"/>
+  <polygon class="arrowhead-soft" points="-13,-7 0,0 -13,7" transform="translate(735 630) rotate(111)"/>
+  <polygon class="arrowhead-soft" points="-13,-7 0,0 -13,7" transform="translate(345 630) rotate(161)"/>
+  <polygon class="arrowhead-soft" points="-13,-7 0,0 -13,7" transform="translate(735 815) rotate(104)"/>
+  <polygon class="arrowhead-soft" points="-13,-7 0,0 -13,7" transform="translate(345 820) rotate(142)"/>
+
+  <text class="small" x="82" y="940">Submission note: DynamoDB is the primary backend. S3, Resend, Clerk, AI, and YouTube are server-side integrations; no secrets are exposed to the browser.</text>
+</svg>

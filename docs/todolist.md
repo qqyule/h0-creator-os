@@ -172,7 +172,7 @@ This checklist is ordered around the MVP golden path:
 - [x] Verify Resend smoke path with a safe test recipient or non-production route.
 - [x] Reset or reseed demo data before recording and submission.
 - [ ] Freeze judge-facing navigation names before video recording.
-- [/] Create architecture diagram with Browser, Vercel, AI service, DynamoDB, S3, Resend, Clerk, and deploy flow. Draft is in `docs/submission-pack.md`; exportable visual still pending.
+- [x] Create architecture diagram with Browser, Vercel, AI service, DynamoDB, S3, Resend, Clerk, and deploy flow. Exported visuals are in `docs/architecture-diagram.svg` and `docs/architecture-diagram.png`.
 - [x] Write Devpost description in English and explain DynamoDB single-table and access-pattern design.
 - [x] Include DynamoDB runtime proof in the demo script: persisted demo workspace, GSI timeline/status reads, and conditional status updates.
 - [x] Capture storage configuration screenshot outside the repository.

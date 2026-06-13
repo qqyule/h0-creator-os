@@ -133,6 +133,7 @@ Diagram export notes:
 - Group DynamoDB and S3 inside AWS.
 - Keep Vercel Team ID and private screenshots outside this repository.
 - Include YouTube Data API v3 as optional public metrics sync, not as OAuth or publishing.
+- Exported files: `docs/architecture-diagram.svg` and `docs/architecture-diagram.png`.
 
 ## Evidence Checklist
 

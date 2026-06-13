@@ -1,8 +1,10 @@
 # CreatorOS Documents
 
-Last updated: 2026-06-10
+Last updated: 2026-06-13
 
 CreatorOS is an English-first content operations system for independent creators, small studios, and cross-border content teams. The H0 version should prove one complete workflow: plan, adapt, ship, measure, and improve the next 30 posts.
+
+For the judge-facing project summary, live demo link, requirement coverage, and one-glance feature explanation, start with the root [README](../README.md). This file is the implementation-facing documentation index.
 
 ## Current Decisions
 
