@@ -13,6 +13,15 @@ export const workflowStatuses: WorkflowStatus[] = ["Idea", "Drafting", "Review",
 export const creatorTaskStatusSchema = z.enum(["open", "done"])
 export type CreatorTaskStatus = z.infer<typeof creatorTaskStatusSchema>
 
+export const ideaStatusSchema = z.enum(["new", "planned", "archived"])
+export type IdeaStatus = z.infer<typeof ideaStatusSchema>
+
+export const ideaSourceSchema = z.enum(["manual", "approved-trend"])
+export type IdeaSource = z.infer<typeof ideaSourceSchema>
+
+export const queueStatusSchema = z.enum(["none", "queued"])
+export type QueueStatus = z.infer<typeof queueStatusSchema>
+
 export const platformLabels: Record<PlatformId, string> = {
   linkedin: "LinkedIn",
   x: "X",
@@ -37,6 +46,22 @@ export const accountDnaSchema = z.object({
   updatedAt: z.string().datetime(),
 })
 export type AccountDna = z.infer<typeof accountDnaSchema>
+
+export const brandVoiceExampleSchema = z.object({
+  id: z.string().min(1),
+  title: z.string().min(2).max(120),
+  text: z.string().min(20).max(800),
+  approved: z.boolean(),
+})
+export type BrandVoiceExample = z.infer<typeof brandVoiceExampleSchema>
+
+export const brandVoiceSchema = z.object({
+  workspaceId: workspaceIdSchema,
+  traits: z.array(z.string().min(2).max(120)).max(8),
+  examples: z.array(brandVoiceExampleSchema).max(3),
+  updatedAt: z.string().datetime(),
+})
+export type BrandVoice = z.infer<typeof brandVoiceSchema>
 
 export const postMetricSourceSchema = z.enum(["manual", "youtube"])
 export type PostMetricSource = z.infer<typeof postMetricSourceSchema>
@@ -90,12 +115,46 @@ export const postSchema = z.object({
   status: workflowStatusSchema,
   primaryPlatform: platformSchema,
   platforms: z.array(platformSchema).min(1),
+  scheduledTime: z.string().regex(/^\d{2}:\d{2}$/).optional(),
+  timezone: z.string().min(2).max(80).optional(),
+  queueStatus: queueStatusSchema.optional(),
+  queuePosition: z.number().int().positive().optional(),
   externalId: z.string().min(1).max(120).optional(),
   publishedUrl: z.string().url().max(500).optional(),
   version: z.number().int().positive(),
   updatedAt: z.string().datetime(),
 })
 export type Post = z.infer<typeof postSchema>
+
+export const ideaSchema = z.object({
+  id: z.string().min(1),
+  workspaceId: workspaceIdSchema,
+  title: z.string().min(2).max(180),
+  description: z.string().min(2).max(600),
+  source: ideaSourceSchema,
+  status: ideaStatusSchema,
+  platform: platformSchema.optional(),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
+})
+export type Idea = z.infer<typeof ideaSchema>
+
+export const carouselSlideSchema = z.object({
+  title: z.string().min(2).max(120),
+  body: z.string().min(2).max(500),
+})
+export type CarouselSlide = z.infer<typeof carouselSlideSchema>
+
+export const carouselExportSchema = z.object({
+  id: z.string().min(1),
+  workspaceId: workspaceIdSchema,
+  postId: z.string().min(1),
+  title: z.string().min(2).max(120),
+  slides: z.array(carouselSlideSchema).min(3).max(8),
+  s3Key: z.string().min(1).optional(),
+  createdAt: z.string().datetime(),
+})
+export type CarouselExport = z.infer<typeof carouselExportSchema>
 
 export const monthlyPlanSchema = z.object({
   workspaceId: workspaceIdSchema,
@@ -151,6 +210,8 @@ export const dashboardSummarySchema = z.object({
   insights: z.array(insightSchema),
   metrics: z.array(postMetricSchema),
   tasks: z.array(creatorTaskSchema),
+  ideas: z.array(ideaSchema).default([]),
+  brandVoice: brandVoiceSchema.optional(),
 })
 export type DashboardSummary = z.infer<typeof dashboardSummarySchema>
 
@@ -173,6 +234,19 @@ export const statusUpdateSchema = z.object({
   status: workflowStatusSchema,
   version: z.number().int().positive().optional(),
   updatedAt: z.string().datetime().optional(),
+})
+
+export const scheduleUpdateSchema = z.object({
+  scheduledDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  scheduledTime: z.string().regex(/^\d{2}:\d{2}$/),
+  timezone: z.string().min(2).max(80),
+  status: workflowStatusSchema.optional(),
+  version: z.number().int().positive().optional(),
+})
+
+export const queuePostSchema = z.object({
+  timezone: z.string().min(2).max(80).default("America/Los_Angeles"),
+  version: z.number().int().positive().optional(),
 })
 
 export const rewriteRequestSchema = z.object({
@@ -220,4 +294,31 @@ export const assetPresignSchema = z.object({
 
 export const notificationTestSchema = z.object({
   email: z.string().email().optional(),
+})
+
+export const brandVoiceInputSchema = z.object({
+  traits: z.array(z.string().min(2).max(120)).max(8).default([]),
+  examples: z.array(brandVoiceExampleSchema.omit({ id: true }).extend({ id: z.string().min(1).optional() })).max(3).default([]),
+})
+
+export const ideaInputSchema = z.object({
+  title: z.string().min(2).max(180),
+  description: z.string().min(2).max(600),
+  platform: platformSchema.optional(),
+})
+
+export const ideaUpdateSchema = z.object({
+  id: z.string().min(1),
+  title: z.string().min(2).max(180).optional(),
+  description: z.string().min(2).max(600).optional(),
+  status: ideaStatusSchema.optional(),
+  platform: platformSchema.optional(),
+})
+
+export const ideaImportSchema = z.object({
+  ideas: z.array(ideaInputSchema).min(1).max(12),
+})
+
+export const carouselGenerateSchema = z.object({
+  title: z.string().min(2).max(120).optional(),
 })

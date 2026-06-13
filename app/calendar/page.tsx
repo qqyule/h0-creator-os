@@ -1,10 +1,9 @@
 import Link from "next/link"
-import { CalendarDays, ChevronRight, ListChecks } from "lucide-react"
+import { CalendarDays, ChevronRight } from "lucide-react"
 import { notFound } from "next/navigation"
 import { getTranslations } from "next-intl/server"
 import { AppShell } from "@/components/app/app-shell"
-import { PlatformPill } from "@/components/app/platform-pill"
-import { StatusBadge } from "@/components/app/status-badge"
+import { CalendarBoard } from "@/components/calendar/calendar-board"
 import { Button } from "@/components/ui/button"
 import { DEMO_MONTH } from "@/lib/demo-data"
 import type { CreatorTask, MonthlyPlan } from "@/lib/domain"
@@ -28,17 +27,6 @@ export default async function CalendarPage() {
 
     throw error
   }
-  const weeks = chunk(plan.posts, 7)
-  const tasksByPost = new Map<string, CreatorTask[]>()
-
-  for (const task of tasks) {
-    if (!task.postId || task.status === "done") {
-      continue
-    }
-
-    tasksByPost.set(task.postId, [...(tasksByPost.get(task.postId) ?? []), task])
-  }
-
   return (
     <AppShell>
       <div className="flex flex-col gap-6">
@@ -66,36 +54,8 @@ export default async function CalendarPage() {
           </div>
 
           {plan.posts.length ? (
-            <div className="mt-5 grid gap-4">
-              {weeks.map((week, index) => (
-                <div key={index} className="grid gap-3 md:grid-cols-7">
-                  {week.map((post) => (
-                    <Link
-                      key={post.id}
-                      href={`/post/${post.id}`}
-                      className="flex min-h-40 flex-col rounded-xl border border-border bg-background p-3 transition-colors hover:bg-accent/40"
-                    >
-                      <div className="flex items-start justify-between gap-2">
-                        <span className="text-sm font-semibold text-foreground">
-                          {Number(post.scheduledDate.slice(-2))}
-                        </span>
-                        <StatusBadge status={post.status} />
-                      </div>
-                      <p className="mt-3 line-clamp-3 text-sm font-medium leading-5 text-foreground">{post.title}</p>
-                      <p className="mt-2 text-xs text-muted-foreground">{post.format}</p>
-                      <div className="mt-auto pt-3">
-                        <PlatformPill platform={post.primaryPlatform} />
-                        {tasksByPost.get(post.id)?.length ? (
-                          <div className="mt-2 flex items-center gap-1 rounded-md bg-primary/10 px-2 py-1 text-xs font-medium text-primary">
-                            <ListChecks className="h-3 w-3" />
-                            {t("taskMarker", { count: tasksByPost.get(post.id)?.length ?? 0 })}
-                          </div>
-                        ) : null}
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              ))}
+            <div className="mt-5">
+              <CalendarBoard initialPosts={plan.posts} tasks={tasks} />
             </div>
           ) : (
             <div className="mt-5 rounded-xl border border-dashed border-border p-8 text-center">
@@ -107,14 +67,4 @@ export default async function CalendarPage() {
       </div>
     </AppShell>
   )
-}
-
-function chunk<T>(items: T[], size: number) {
-  const result: T[][] = []
-
-  for (let index = 0; index < items.length; index += size) {
-    result.push(items.slice(index, index + size))
-  }
-
-  return result
 }

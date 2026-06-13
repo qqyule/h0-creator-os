@@ -221,6 +221,8 @@
       "generate": "Generate rewrite",
       "platformGroup": "Choose platform rewrite target",
       "characterCount": "{count} characters",
+      "xCounter": "X weighted: {count}/280 ({remaining} left)",
+      "xLimitWarning": "This X variant is over the standard limit. Review the copy before publishing; CreatorOS will not auto-truncate it.",
       "messages": {
         "generated": "Rewrite generated with {source}."
       },
@@ -252,6 +254,31 @@
         "description": "Re-run this platform variant with a focused tone override.",
         "selectLabel": "Tone override",
         "apply": "Apply tone"
+      }
+    },
+    "queue": {
+      "title": "Posting Queue",
+      "description": "Assign this post to the next open internal slot. This does not publish to social platforms.",
+      "add": "Add to queue",
+      "empty": "This post is not queued yet.",
+      "queuedSummary": "Queued #{position} for {date} at {time}.",
+      "messages": {
+        "queued": "Post queued in {mode} mode."
+      },
+      "errors": {
+        "failed": "Post could not be queued."
+      }
+    },
+    "carousel": {
+      "title": "LinkedIn PDF Carousel",
+      "description": "Generate a simple document-style PDF from this post. Export stays server-side and does not publish externally.",
+      "generate": "Generate PDF",
+      "download": "Download PDF",
+      "messages": {
+        "generated": "Carousel generated with {source}."
+      },
+      "errors": {
+        "failed": "Carousel export failed."
       }
     },
     "status": {
@@ -405,6 +432,26 @@
     "errors": {
       "generateFailed": "Insight could not be generated."
     }
+  },
+  "ideaInbox": {
+    "title": "Idea Inbox",
+    "description": "Collect first-party ideas and approved trend imports before turning them into planned posts.",
+    "fields": {
+      "title": "Idea title",
+      "description": "Why this idea matters",
+      "noPlatform": "No platform"
+    },
+    "create": "Add idea",
+    "markPlanned": "Mark planned",
+    "archive": "Archive idea",
+    "messages": {
+      "created": "Idea added."
+    },
+    "errors": {
+      "createFailed": "Idea could not be created.",
+      "updateFailed": "Idea could not be updated."
+    },
+    "empty": "No ideas yet. Add one manually or import approved trends as an admin."
   },
   "settings": {
     "eyebrow": "Settings",

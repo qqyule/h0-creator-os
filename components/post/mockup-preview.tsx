@@ -1,5 +1,6 @@
 import { BarChart3, Bookmark, Heart, MessageCircle, Repeat2, ThumbsUp } from "lucide-react"
 import type { PlatformVariant } from "@/lib/domain"
+import { extractRednoteHashtags } from "@/lib/platform-formatting"
 
 type VisualMockupWorkspaceProps = {
   variant: PlatformVariant
@@ -61,6 +62,8 @@ export function VisualMockupWorkspace({ variant, title, unsupportedLabel }: Visu
   }
 
   if (variant.platform === "rednote") {
+    const tags = extractRednoteHashtags(variant.body)
+
     return (
       <PreviewFrame title={title}>
         <article className="mx-auto max-w-xs rounded-[1.75rem] border border-rose-100 bg-rose-50 p-3 text-rose-950 shadow-sm dark:border-rose-400/20 dark:bg-rose-950/20 dark:text-rose-50">
@@ -72,11 +75,18 @@ export function VisualMockupWorkspace({ variant, title, unsupportedLabel }: Visu
                 <p className="mt-2 line-clamp-4 text-xs leading-5 text-muted-foreground">{variant.headline}</p>
               </div>
               <div className="rounded-2xl bg-card p-3 text-xs text-muted-foreground">
-                #contentops #workflow #creator
+                {(tags.length ? tags : ["contentops", "workflow", "creator"]).map((tag) => `#${tag}`).join(" ")}
               </div>
             </div>
           </div>
           <p className="mt-3 line-clamp-5 whitespace-pre-line text-sm leading-6">{variant.body}</p>
+          <div className="mt-3 flex flex-wrap gap-1.5">
+            {tags.map((tag) => (
+              <span key={tag} className="rounded-full bg-rose-100 px-2 py-1 text-xs font-medium text-rose-700 dark:bg-rose-400/15 dark:text-rose-100">
+                #{tag}
+              </span>
+            ))}
+          </div>
           <div className="mt-3 flex items-center justify-between rounded-full bg-card px-3 py-2 text-xs text-muted-foreground">
             <ActionLabel icon={<Heart className="h-3.5 w-3.5 text-rose-500" />} label="1.8K" />
             <ActionLabel icon={<Bookmark className="h-3.5 w-3.5" />} label="Save" />

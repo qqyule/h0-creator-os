@@ -224,6 +224,44 @@ Do not add these to the MVP without explicit approval:
 
 Public API read-only access (e.g. YouTube Data API v3 with a server-side API key) is allowed because it does not require user OAuth, does not write to external platforms, and does not introduce social login flows. Keep this boundary clear in code reviews.
 
+## Post-H0 SaaS Roadmap
+
+This roadmap is for product planning after the H0 submission is stable. It should not expand the recorded MVP scope, add production dependencies, or destabilize the judge demo without explicit approval.
+
+Research notes:
+
+- X post length must use weighted counting rather than raw JavaScript string length, including URL, emoji, and CJK behavior. See [X character counting](https://docs.x.com/fundamentals/counting-characters).
+- LinkedIn document-style carousel export should follow LinkedIn document upload constraints, including supported file types, file size, page limits, title metadata, and PDF preparation guidance. See [LinkedIn document upload guidance](https://www.linkedin.com/help/linkedin/answer/a518909).
+- External trend feeds should rely only on official or approved APIs. Google Trends API access is limited/alpha, so trend-based automation should not be a near-term dependency. See [Google Trends API alpha note](https://developers.google.com/search/blog/2025/07/trends-api).
+
+### Near-Term Product Polish
+
+- **X weighted character counter**: keep as a low-risk editor improvement. Count X text with platform-aware weights for URLs, emoji, and CJK text; warn when content exceeds the standard limit; do not silently truncate user copy.
+- **Rednote hashtag preview**: keep as a low-risk preview improvement. Parse sanitized `#tag` tokens from variant text and render them as preview chips without implying Rednote API integration.
+- **Hook template library**: keep as an extension of the existing Hook Enhancer. Use deterministic frameworks such as AIDA, PAS, and Before-After-Bridge; avoid "viral" claims and keep AI output validation in place.
+
+### Commercial SaaS Differentiators
+
+- **Brand Voice capture**: add a bounded, consent-based way to save reference examples or extracted voice traits. Do not store unlimited raw article text in the Profile entity; prefer compact traits, selected snippets, and clear user control.
+- **Few-shot rewrite quality**: use approved Brand Voice snippets only in server-side prompts, with token limits, schema validation, and safe fallbacks before persisting generated variants.
+- **Idea Inbox**: replace scraping-based topic recommendations with a first-party idea collection workflow first. Optional external trend sources can be added later only through official or approved APIs.
+- **Best-time analytics**: keep as a data feedback feature, but show confidence labels and minimum sample thresholds. Do not present recommendations as statistically reliable when the workspace has too little first-party metric history.
+- **Internal posting queue**: keep as a strategic P2 scheduling feature. It should assign the next open internal slot and must not imply social OAuth, external publishing, or automated posting.
+
+### Conditional Or Deferred Integrations
+
+- **Apply best time to schedule**: defer until the post model supports scheduled time and timezone, not only scheduled date.
+- **LinkedIn PDF carousel export**: move to conditional P2. It requires export design, PDF generation, S3 storage or download handling, accessibility/title metadata, and validation against LinkedIn document constraints.
+- **External trend feeds**: defer until official access, quota, terms, and failure handling are clear. Do not scrape X, Google Trends, or other platforms for the MVP.
+- **Calendar quick edit**: keep as P2 after schedule and status rules are stable. Start with an accessible dialog/edit flow and ElectroDB conditional writes.
+- **Drag-and-drop scheduling**: defer until quick edit works reliably. Require keyboard-accessible alternatives and explicit approval before adding a drag-and-drop dependency.
+
+Guardrails:
+
+- No social OAuth, auto-publishing, scraping, billing, complex permissions, realtime collaboration, or agency multi-client dashboard without explicit approval.
+- No new production dependency for roadmap items without documenting need, alternatives, maintenance risk, and deployment impact.
+- Keep the guest demo workspace stable and keep judge-facing routes, navigation names, and core video flow unchanged through submission.
+
 ## Risks
 
 - The product may look like a generic AI planner if the workflow loop is not visible on every main screen.

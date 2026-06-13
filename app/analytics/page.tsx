@@ -3,13 +3,14 @@ import { BarChart3 } from "lucide-react"
 import { notFound } from "next/navigation"
 import { getTranslations } from "next-intl/server"
 import { ActionableTasksPanel } from "@/components/analytics/actionable-tasks"
+import { BestTimesPanel } from "@/components/analytics/best-times-panel"
 import { CsvImportPanel } from "@/components/analytics/csv-import-panel"
 import { AppShell } from "@/components/app/app-shell"
 import { PlatformPill } from "@/components/app/platform-pill"
 import { InsightGenerator } from "@/components/post/insight-actions"
 import { DEMO_MONTH } from "@/lib/demo-data"
 import type { CreatorTask, Insight, MonthlyPlan, PostMetric } from "@/lib/domain"
-import { ContentNotFoundError, getMonthlyPlan, listInsights, listMetrics, listTasks } from "@/lib/repositories/content-repository"
+import { calculateBestTimes, ContentNotFoundError, getMonthlyPlan, listInsights, listMetrics, listTasks } from "@/lib/repositories/content-repository"
 import { resolveWorkspace } from "@/lib/workspace"
 
 export default async function AnalyticsPage() {
@@ -19,12 +20,14 @@ export default async function AnalyticsPage() {
   let metrics: PostMetric[]
   let insights: Insight[]
   let tasks: CreatorTask[]
+  let bestTimes: Awaited<ReturnType<typeof calculateBestTimes>>
   try {
-    ;[plan, metrics, insights, tasks] = await Promise.all([
+    ;[plan, metrics, insights, tasks, bestTimes] = await Promise.all([
       getMonthlyPlan(workspace.workspaceId, DEMO_MONTH),
       listMetrics(workspace.workspaceId, DEMO_MONTH),
       listInsights(workspace.workspaceId, DEMO_MONTH),
       listTasks(workspace.workspaceId, DEMO_MONTH),
+      calculateBestTimes(workspace.workspaceId, DEMO_MONTH),
     ])
   } catch (error) {
     if (error instanceof ContentNotFoundError) {
@@ -67,6 +70,12 @@ export default async function AnalyticsPage() {
         </section>
 
         <CsvImportPanel posts={plan.posts} metrics={metrics} />
+
+        <BestTimesPanel
+          recommendations={bestTimes.recommendations}
+          metricCount={bestTimes.metricCount}
+          minimumSampleSize={bestTimes.minimumSampleSize}
+        />
 
         <section className="grid gap-5 xl:grid-cols-[minmax(0,3fr)_minmax(320px,2fr)]">
           <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">

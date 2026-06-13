@@ -1,9 +1,12 @@
 import { TransactWriteCommand, type TransactWriteCommandInput } from "@aws-sdk/lib-dynamodb"
 import {
   accountDnaSchema,
+  brandVoiceSchema,
+  carouselExportSchema,
   creatorTaskSchema,
   dashboardSummarySchema,
   draftVersionSchema,
+  ideaSchema,
   insightSchema,
   monthlyPlanSchema,
   platformVariantSchema,
@@ -11,10 +14,14 @@ import {
   postMetricSchema,
   postSchema,
   type AccountDna,
+  type BrandVoice,
+  type CarouselExport,
   type CreatorTask,
   type CreatorTaskStatus,
   type DashboardSummary,
   type DraftVersion,
+  type Idea,
+  type IdeaSource,
   type Insight,
   type MonthlyPlan,
   type PlatformVariant,
@@ -40,7 +47,10 @@ import {
 import { getDocumentClient } from "@/lib/dynamodb/client"
 import {
   ContentService,
+  BrandVoiceEntity,
+  CarouselExportEntity,
   DraftVersionEntity,
+  IdeaEntity,
   InsightEntity,
   MonthlyPlanEntity,
   PlatformVariantEntity,
@@ -57,6 +67,10 @@ type DraftVersionRecord = DraftVersion & { workspaceId: string }
 type PlatformVariantRecord = PlatformVariant & Pick<Post, "workspaceId" | "month" | "scheduledDate">
 type PostMetricRecord = PostMetric & { workspaceId: string; month: string }
 const demoTaskStore = new Map<string, CreatorTask[]>()
+const demoBrandVoiceStore = new Map<string, BrandVoice>()
+const demoIdeaStore = new Map<string, Idea[]>()
+const demoCarouselStore = new Map<string, CarouselExport[]>()
+const demoPostOverrideStore = new Map<string, Partial<Post>>()
 
 export class ContentNotFoundError extends Error {
   code: "PROFILE_NOT_FOUND" | "PLAN_NOT_FOUND" | "POST_NOT_FOUND"
@@ -137,7 +151,7 @@ function toMetricRecord(metric: PostMetric, workspaceId: string): PostMetricReco
 }
 
 function getDemoPlanForWorkspace(workspaceId: string, month = DEMO_MONTH): MonthlyPlan {
-  const posts = demoPosts.map((post) => ({ ...post, workspaceId, month }))
+  const posts = demoPosts.map((post) => applyDemoPostOverride({ ...post, workspaceId, month }))
 
   return {
     ...demoPlan,
@@ -182,7 +196,7 @@ function getDemoPostDetailForWorkspace(workspaceId: string, postId: string): Pos
     throw new ContentNotFoundError("POST_NOT_FOUND", "Post could not be found.")
   }
 
-  const post = { ...detail.post, workspaceId }
+  const post = applyDemoPostOverride({ ...detail.post, workspaceId })
 
   return {
     post,
@@ -190,6 +204,34 @@ function getDemoPostDetailForWorkspace(workspaceId: string, postId: string): Pos
     metrics: detail.metrics,
     drafts: detail.drafts,
   }
+}
+
+function demoPostOverrideKey(workspaceId: string, postId: string) {
+  return `${workspaceId}#${postId}`
+}
+
+function applyDemoPostOverride(post: Post): Post {
+  return postSchema.parse({
+    ...post,
+    ...demoPostOverrideStore.get(demoPostOverrideKey(post.workspaceId, post.id)),
+  })
+}
+
+function saveDemoPostOverride(post: Post) {
+  demoPostOverrideStore.set(demoPostOverrideKey(post.workspaceId, post.id), {
+    scheduledDate: post.scheduledDate,
+    scheduledTime: post.scheduledTime,
+    timezone: post.timezone,
+    queueStatus: post.queueStatus,
+    queuePosition: post.queuePosition,
+    status: post.status,
+    version: post.version,
+    updatedAt: post.updatedAt,
+  })
+}
+
+function makeId(prefix: string) {
+  return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`
 }
 
 export async function getProfile(workspaceId: string): Promise<AccountDna> {
@@ -220,6 +262,32 @@ export async function saveProfile(workspaceId: string, profile: Omit<AccountDna,
   await ProfileEntity.put(saved).go()
 
   return { profile: saved, mode: "dynamodb" as const }
+}
+
+export async function getBrandVoice(workspaceId: string): Promise<BrandVoice | undefined> {
+  if (!dynamoReady()) {
+    return demoBrandVoiceStore.get(workspaceId)
+  }
+
+  const result = await BrandVoiceEntity.get({ workspaceId }).go()
+  return result.data ? brandVoiceSchema.parse(result.data) : undefined
+}
+
+export async function saveBrandVoice(workspaceId: string, input: Omit<BrandVoice, "workspaceId" | "updatedAt">) {
+  const saved = brandVoiceSchema.parse({
+    ...input,
+    workspaceId,
+    updatedAt: new Date().toISOString(),
+  })
+
+  if (!dynamoReady()) {
+    demoBrandVoiceStore.set(workspaceId, saved)
+    return { brandVoice: saved, mode: "demo" as const }
+  }
+
+  await BrandVoiceEntity.put(saved).go()
+
+  return { brandVoice: saved, mode: "dynamodb" as const }
 }
 
 export async function saveMonthlyPlan(workspaceId: string, plan: MonthlyPlan) {
@@ -311,15 +379,19 @@ export async function getDashboardSummary(workspaceId: string, month = DEMO_MONT
       posts: getDemoPlanForWorkspace(workspaceId, month).posts,
       insights: getDemoInsightsForWorkspace(workspaceId, month),
       tasks: getDemoTasksForWorkspace(workspaceId, month),
+      ideas: await listIdeas(workspaceId),
+      brandVoice: await getBrandVoice(workspaceId),
     })
   }
 
-  const [profile, plan, insights, metrics, tasks] = await Promise.all([
+  const [profile, plan, insights, metrics, tasks, ideas, brandVoice] = await Promise.all([
     getProfile(workspaceId),
     getMonthlyPlan(workspaceId, month),
     listInsights(workspaceId, month),
     listMetrics(workspaceId, month),
     listTasks(workspaceId, month),
+    listIdeas(workspaceId),
+    getBrandVoice(workspaceId),
   ])
 
   return dashboardSummarySchema.parse({
@@ -329,6 +401,8 @@ export async function getDashboardSummary(workspaceId: string, month = DEMO_MONT
     insights,
     metrics,
     tasks,
+    ideas,
+    brandVoice,
   })
 }
 
@@ -396,6 +470,7 @@ export async function updatePostStatus(
   }
 
   if (!dynamoReady()) {
+    saveDemoPostOverride(nextPost)
     return { ok: true, post: nextPost, mode: "demo" }
   }
 
@@ -463,6 +538,161 @@ export async function savePostExternalReference(
   return { post, mode: "dynamodb" as const }
 }
 
+export async function updatePostSchedule(
+  workspaceId: string,
+  postId: string,
+  input: {
+    scheduledDate: string
+    scheduledTime: string
+    timezone: string
+    status?: WorkflowStatus
+    version?: number
+  },
+) {
+  let detail: PostDetail
+
+  try {
+    detail = await getPostDetail(workspaceId, postId)
+  } catch (error) {
+    if (error instanceof ContentNotFoundError) {
+      return {
+        ok: false as const,
+        code: "NOT_FOUND" as const,
+        message: error.message,
+        mode: dynamoReady() ? ("dynamodb" as const) : ("demo" as const),
+      }
+    }
+
+    throw error
+  }
+
+  if (input.version && input.version !== detail.post.version) {
+    return {
+      ok: false as const,
+      code: "CONFLICT" as const,
+      message: "The post was updated by another request. Refresh and try again.",
+      mode: dynamoReady() ? ("dynamodb" as const) : ("demo" as const),
+    }
+  }
+
+  const post = postSchema.parse({
+    ...detail.post,
+    scheduledDate: input.scheduledDate,
+    month: monthFromDate(input.scheduledDate),
+    scheduledTime: input.scheduledTime,
+    timezone: input.timezone,
+    status: input.status ?? detail.post.status,
+    version: detail.post.version + 1,
+    updatedAt: new Date().toISOString(),
+  })
+
+  if (!dynamoReady()) {
+    saveDemoPostOverride(post)
+    return { ok: true as const, post, mode: "demo" as const }
+  }
+
+  try {
+    await PostEntity.update({ workspaceId, id: postId })
+      .set({
+        scheduledDate: post.scheduledDate,
+        month: post.month,
+        scheduledTime: post.scheduledTime,
+        timezone: post.timezone,
+        status: post.status,
+        version: post.version,
+        updatedAt: post.updatedAt,
+      })
+      .where(({ version }, { eq }) => eq(version, input.version ?? detail.post.version))
+      .go()
+  } catch {
+    return {
+      ok: false as const,
+      code: "CONFLICT" as const,
+      message: "The schedule update could not be applied because the stored version changed.",
+      mode: "dynamodb" as const,
+    }
+  }
+
+  return { ok: true as const, post, mode: "dynamodb" as const }
+}
+
+export async function addPostToQueue(workspaceId: string, postId: string, input: { timezone: string; version?: number }) {
+  const plan = await getMonthlyPlan(workspaceId)
+  const queuedPosts = plan.posts.filter((post) => post.queueStatus === "queued")
+  const takenSlots = new Set(queuedPosts.map((post) => `${post.scheduledDate}#${post.scheduledTime ?? "09:00"}`))
+  const slots = ["09:00", "13:00", "17:00"]
+  const dates = plan.posts.map((post) => post.scheduledDate)
+  let scheduledDate = dates[0] ?? `${DEMO_MONTH}-01`
+  let scheduledTime = slots[0]
+
+  for (const date of dates) {
+    const available = slots.find((slot) => !takenSlots.has(`${date}#${slot}`))
+    if (available) {
+      scheduledDate = date
+      scheduledTime = available
+      break
+    }
+  }
+
+  const result = await updatePostSchedule(workspaceId, postId, {
+    scheduledDate,
+    scheduledTime,
+    timezone: input.timezone,
+    status: "Scheduled",
+    version: input.version,
+  })
+
+  if (!result.ok) {
+    return result
+  }
+
+  const post = postSchema.parse({
+    ...result.post,
+    queueStatus: "queued",
+    queuePosition: Math.max(0, ...queuedPosts.map((item) => item.queuePosition ?? 0)) + 1,
+  })
+
+  if (!dynamoReady()) {
+    saveDemoPostOverride(post)
+    return { ok: true as const, post, mode: "demo" as const }
+  }
+
+  await PostEntity.update({ workspaceId, id: postId })
+    .set({
+      queueStatus: post.queueStatus,
+      queuePosition: post.queuePosition,
+    })
+    .go()
+
+  return { ok: true as const, post, mode: "dynamodb" as const }
+}
+
+export async function saveCarouselExport(workspaceId: string, exportData: Omit<CarouselExport, "workspaceId">) {
+  const saved = carouselExportSchema.parse({
+    ...exportData,
+    workspaceId,
+  })
+
+  if (!dynamoReady()) {
+    const key = `${workspaceId}#${saved.postId}`
+    demoCarouselStore.set(key, [saved, ...(demoCarouselStore.get(key) ?? [])])
+    return { export: saved, mode: "demo" as const }
+  }
+
+  await CarouselExportEntity.put(saved).go()
+
+  return { export: saved, mode: "dynamodb" as const }
+}
+
+export async function getCarouselExport(workspaceId: string, postId: string, exportId: string) {
+  if (!dynamoReady()) {
+    return (demoCarouselStore.get(`${workspaceId}#${postId}`) ?? []).find((item) => item.id === exportId)
+  }
+
+  const result = await CarouselExportEntity.get({ workspaceId, postId, id: exportId }).go()
+  return result.data ? carouselExportSchema.parse(result.data) : undefined
+}
+
 export async function listMetrics(workspaceId: string, month = DEMO_MONTH): Promise<PostMetric[]> {
   if (canUseDemoFallback(workspaceId)) {
     return clone(demoMetrics)
@@ -491,6 +721,136 @@ export async function listTasks(workspaceId: string, month = DEMO_MONTH): Promis
   const result = await TaskEntity.query.byMonth({ workspaceId, month }).go()
 
   return result.data.map((item) => creatorTaskSchema.parse(item))
+}
+
+export async function listIdeas(workspaceId: string): Promise<Idea[]> {
+  if (!dynamoReady()) {
+    const current = demoIdeaStore.get(workspaceId)
+
+    if (current?.length) {
+      return current.slice().sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+    }
+
+    return [
+      ideaSchema.parse({
+        id: "idea-demo-brand-voice",
+        workspaceId,
+        title: "Turn the strongest workflow insight into a carousel",
+        description: "Use the retention insight to explain how creators can stop restarting from a blank calendar.",
+        source: "manual",
+        status: "new",
+        platform: "linkedin",
+        createdAt: "2026-06-10T00:00:00.000Z",
+        updatedAt: "2026-06-10T00:00:00.000Z",
+      }),
+    ]
+  }
+
+  const result = await IdeaEntity.query.byCreatedAt({ workspaceId }).go()
+  return result.data.map((item) => ideaSchema.parse(item)).sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+}
+
+export async function createIdea(
+  workspaceId: string,
+  input: { title: string; description: string; platform?: Post["primaryPlatform"] },
+  source: IdeaSource = "manual",
+) {
+  const now = new Date().toISOString()
+  const idea = ideaSchema.parse({
+    ...input,
+    id: makeId("idea"),
+    workspaceId,
+    source,
+    status: "new",
+    createdAt: now,
+    updatedAt: now,
+  })
+
+  if (!dynamoReady()) {
+    demoIdeaStore.set(workspaceId, [idea, ...(demoIdeaStore.get(workspaceId) ?? [])])
+    return { idea, mode: "demo" as const }
+  }
+
+  await IdeaEntity.put(idea).go()
+
+  return { idea, mode: "dynamodb" as const }
+}
+
+export async function updateIdea(workspaceId: string, update: { id: string; title?: string; description?: string; status?: Idea["status"]; platform?: Idea["platform"] }) {
+  const current = (await listIdeas(workspaceId)).find((idea) => idea.id === update.id)
+
+  if (!current) {
+    return {
+      ok: false as const,
+      code: "NOT_FOUND" as const,
+      message: "Idea could not be found.",
+      mode: dynamoReady() ? ("dynamodb" as const) : ("demo" as const),
+    }
+  }
+
+  const idea = ideaSchema.parse({
+    ...current,
+    ...update,
+    updatedAt: new Date().toISOString(),
+  })
+
+  if (!dynamoReady()) {
+    const next = (demoIdeaStore.get(workspaceId) ?? []).filter((item) => item.id !== idea.id)
+    demoIdeaStore.set(workspaceId, [idea, ...next])
+    return { ok: true as const, idea, mode: "demo" as const }
+  }
+
+  await IdeaEntity.update({ workspaceId, id: idea.id })
+    .set({
+      title: idea.title,
+      description: idea.description,
+      status: idea.status,
+      ...(idea.platform ? { platform: idea.platform } : {}),
+      updatedAt: idea.updatedAt,
+    })
+    .go()
+
+  return { ok: true as const, idea, mode: "dynamodb" as const }
+}
+
+export async function calculateBestTimes(workspaceId: string, month = DEMO_MONTH) {
+  const metrics = await listMetrics(workspaceId, month)
+  const posts = await listPosts(workspaceId, month)
+  const postById = new Map(posts.map((post) => [post.id, post]))
+  const buckets = new Map<string, { score: number; count: number }>()
+
+  for (const metric of metrics) {
+    const post = postById.get(metric.postId)
+    const time = post?.scheduledTime ?? metric.publishedAt.slice(11, 16)
+    const day = post?.scheduledDate ?? metric.publishedAt.slice(0, 10)
+    const key = `${new Date(`${day}T00:00:00.000Z`).getUTCDay()}#${time}`
+    const current = buckets.get(key) ?? { score: 0, count: 0 }
+    buckets.set(key, {
+      score: current.score + metric.views + metric.likes * 8 + metric.comments * 16 + metric.saves * 20,
+      count: current.count + 1,
+    })
+  }
+
+  const recommendations = Array.from(buckets.entries())
+    .map(([key, value]) => {
+      const [weekday, time] = key.split("#")
+      return {
+        weekday: Number(weekday),
+        time,
+        averageScore: Math.round(value.score / Math.max(value.count, 1)),
+        sampleSize: value.count,
+        confidence: value.count >= 5 ? "high" : value.count >= 2 ? "medium" : "low",
+      }
+    })
+    .sort((a, b) => b.averageScore - a.averageScore)
+    .slice(0, 6)
+
+  return {
+    recommendations,
+    minimumSampleSize: 5,
+    metricCount: metrics.length,
+    mode: dynamoReady() ? ("dynamodb" as const) : ("demo" as const),
+  }
 }
 
 export async function saveInsight(workspaceId: string, insight: Insight) {

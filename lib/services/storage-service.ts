@@ -58,3 +58,36 @@ export async function createPresignedUpload(input: {
     uploadUrl,
   }
 }
+
+export async function putGeneratedObject(input: {
+  workspaceId: string
+  fileName: string
+  contentType: string
+  body: Uint8Array
+  purpose: "export" | "asset"
+}) {
+  const config = getS3Config()
+  const client = getS3Client()
+  const safeName = input.fileName.replace(/[^a-zA-Z0-9._-]/g, "-")
+  const key = `${input.workspaceId}/${input.purpose === "export" ? "exports" : "assets"}/${Date.now()}-${safeName}`
+
+  if (!config.configured || !client || !config.bucket) {
+    return {
+      configured: false as const,
+      key,
+      warning: "S3 is not configured. The export can still be downloaded on demand.",
+    }
+  }
+
+  await client.send(new PutObjectCommand({
+    Bucket: config.bucket,
+    Key: key,
+    ContentType: input.contentType,
+    Body: input.body,
+  }))
+
+  return {
+    configured: true as const,
+    key,
+  }
+}

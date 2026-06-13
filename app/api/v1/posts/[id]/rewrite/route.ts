@@ -1,6 +1,6 @@
 import { fail, ok, validationError } from "@/lib/api/response"
 import { rewriteRequestSchema } from "@/lib/domain"
-import { ContentNotFoundError, getPostDetail, saveVariant } from "@/lib/repositories/content-repository"
+import { ContentNotFoundError, getBrandVoice, getPostDetail, saveVariant } from "@/lib/repositories/content-repository"
 import { generatePlatformRewrite } from "@/lib/services/ai-service"
 import { resolveWorkspace } from "@/lib/workspace"
 
@@ -29,7 +29,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     return fail("POST_NOT_FOUND", "Post could not be found.", { status: 404 })
   }
 
-  const generation = await generatePlatformRewrite(detail, parsed.data.platform, parsed.data.tone)
+  const brandVoice = await getBrandVoice(workspace.workspaceId)
+  const generation = await generatePlatformRewrite(detail, parsed.data.platform, parsed.data.tone, brandVoice)
   const saved = await saveVariant(workspace.workspaceId, id, generation.data)
 
   return ok({ generation, saved, workspace })

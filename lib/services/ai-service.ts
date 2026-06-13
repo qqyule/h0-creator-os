@@ -1,11 +1,14 @@
 import { z } from "zod"
 import {
   creatorTaskSchema,
+  carouselSlideSchema,
   draftVersionSchema,
   insightSchema,
   monthlyPlanSchema,
   platformVariantSchema,
   type AccountDna,
+  type BrandVoice,
+  type CarouselSlide,
   type CreatorTask,
   type DraftVersion,
   type Insight,
@@ -31,6 +34,10 @@ const hookOptionsResultSchema = z.object({
 
 const actionableTasksResultSchema = z.object({
   tasks: z.array(creatorTaskSchema).min(2).max(3),
+})
+
+const carouselSlidesResultSchema = z.object({
+  slides: z.array(carouselSlideSchema).min(3).max(8),
 })
 
 function normalizeVariant(detail: PostDetail, platform: PlatformId, variant: PlatformVariant) {
@@ -151,6 +158,7 @@ export async function generatePlatformRewrite(
   detail: PostDetail,
   platform: PlatformId,
   tone?: ToneSandbox,
+  brandVoice?: BrandVoice,
 ): Promise<GenerationResult<PlatformVariant>> {
   const fallbackBody = {
     linkedin:
@@ -174,8 +182,11 @@ export async function generatePlatformRewrite(
     status: "generated",
     updatedAt: new Date().toISOString(),
   })
+  const approvedExamples = brandVoice?.examples.filter((example) => example.approved).slice(0, 2) ?? []
   const prompt = `Rewrite this CreatorOS post for ${platform}. Return JSON with postId, platform, headline, body, callToAction, characterCount, status, updatedAt.
 Tone override: ${tone ?? "Use the account DNA tone."}
+Brand voice traits: ${brandVoice?.traits.slice(0, 6).join(", ") || "Use the account DNA tone."}
+Approved brand voice snippets: ${approvedExamples.map((example) => `${example.title}: ${example.text.slice(0, 360)}`).join(" | ") || "None"}
 Title: ${detail.post.title}
 Source idea: ${detail.post.sourceIdea}
 Draft: ${detail.post.draft}
@@ -202,6 +213,50 @@ Use status "generated" and ISO updatedAt.`
   }
 
   return { data: normalizeVariant(detail, platform, parsed.data), source: "openai" }
+}
+
+export async function generateCarouselSlides(detail: PostDetail, title?: string): Promise<GenerationResult<CarouselSlide[]>> {
+  const fallback = [
+    carouselSlideSchema.parse({
+      title: title || detail.post.title,
+      body: "Most content calendars only track dates. CreatorOS turns planning, rewrites, status, metrics, and insights into one operating loop.",
+    }),
+    carouselSlideSchema.parse({
+      title: "The operating loop",
+      body: "Start with Account DNA, generate the monthly plan, adapt one post per platform, and move work through a visible status workflow.",
+    }),
+    carouselSlideSchema.parse({
+      title: "The feedback loop",
+      body: "Metrics and insights shape the next cycle so creator teams improve the system instead of restarting from a blank page.",
+    }),
+  ]
+  const prompt = `Create 5 concise LinkedIn document carousel slides from this CreatorOS post.
+Return only JSON in this shape: {"slides":[{"title":"short title","body":"plain text"}]}.
+Use 3-8 slides. Keep title under 120 chars and body under 500 chars.
+Post title: ${detail.post.title}
+Source idea: ${detail.post.sourceIdea}
+Draft: ${detail.post.draft}
+Outline: ${detail.post.outline.join(" | ")}`
+  const generated = await requestJson(prompt)
+
+  if (!generated.ok) {
+    return { data: fallback, source: "fallback", warning: generated.warning }
+  }
+
+  const parsed = carouselSlidesResultSchema.safeParse(generated.json)
+
+  if (!parsed.success) {
+    const retry = await requestJson(`${prompt}\nThe previous JSON failed validation. Return corrected JSON only.`)
+    const retryParsed = retry.ok ? carouselSlidesResultSchema.safeParse(retry.json) : undefined
+
+    if (retryParsed?.success) {
+      return { data: retryParsed.data.slides, source: "openai" }
+    }
+
+    return { data: fallback, source: "fallback", warning: "AI carousel generation failed schema validation." }
+  }
+
+  return { data: parsed.data.slides, source: "openai" }
 }
 
 export async function generateHookOptions(

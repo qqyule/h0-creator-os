@@ -3,17 +3,22 @@ import { ArrowRight, ShieldCheck } from "lucide-react"
 import { getTranslations } from "next-intl/server"
 import { AppShell } from "@/components/app/app-shell"
 import { AccountDnaForm } from "@/components/onboarding/account-dna-form"
+import { BrandVoiceForm } from "@/components/onboarding/brand-voice-form"
 import { Button } from "@/components/ui/button"
-import type { AccountDna } from "@/lib/domain"
-import { ContentNotFoundError, getProfile } from "@/lib/repositories/content-repository"
+import type { AccountDna, BrandVoice } from "@/lib/domain"
+import { ContentNotFoundError, getBrandVoice, getProfile } from "@/lib/repositories/content-repository"
 import { resolveWorkspace } from "@/lib/workspace"
 
 export default async function OnboardingPage() {
   const t = await getTranslations("onboarding")
   const workspace = await resolveWorkspace()
   let profile: AccountDna
+  let brandVoice: BrandVoice | undefined
   try {
-    profile = await getProfile(workspace.workspaceId)
+    ;[profile, brandVoice] = await Promise.all([
+      getProfile(workspace.workspaceId),
+      getBrandVoice(workspace.workspaceId),
+    ])
   } catch (error) {
     if (error instanceof ContentNotFoundError && error.code === "PROFILE_NOT_FOUND") {
       profile = {
@@ -26,6 +31,7 @@ export default async function OnboardingPage() {
         goals: [],
         updatedAt: new Date().toISOString(),
       }
+      brandVoice = await getBrandVoice(workspace.workspaceId)
     } else {
       throw error
     }
@@ -43,8 +49,9 @@ export default async function OnboardingPage() {
         </section>
 
         <AccountDnaForm profile={profile} />
+        <BrandVoiceForm brandVoice={brandVoice} />
 
-        <aside className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+        <aside className="rounded-2xl border border-border bg-card p-5 shadow-sm xl:row-span-2">
           <div className="flex items-center gap-2">
             <ShieldCheck className="h-5 w-5 text-primary" />
             <h2 className="text-base font-semibold text-foreground">{t("demoSafe.title")}</h2>

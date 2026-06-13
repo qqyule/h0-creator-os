@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import { AlertCircle, CheckCircle2, Loader2, PenLine, RefreshCw, Save, Sparkles } from "lucide-react"
+import { AlertCircle, CalendarPlus, CheckCircle2, Download, Loader2, PenLine, RefreshCw, Save, Sparkles } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { PlatformPill } from "@/components/app/platform-pill"
 import { StatusBadge } from "@/components/app/status-badge"
@@ -17,6 +17,7 @@ import {
   type PostMetric,
   type ToneSandbox,
 } from "@/lib/domain"
+import { createHookFromTemplate, estimateXWeightedLength, hookTemplates, type HookTemplateId } from "@/lib/platform-formatting"
 
 type ApiResult<T> = {
   ok: boolean
@@ -41,6 +42,7 @@ export function RewritePanel({
   const [isPending, startTransition] = useTransition()
   const [isHookPending, startHookTransition] = useTransition()
   const activeVariant = variants.find((variant) => variant.platform === platform)
+  const xLength = activeVariant?.platform === "x" ? estimateXWeightedLength(activeVariant.body) : null
 
   function updateVariant(variant: PlatformVariant) {
     setVariants((current) => [
@@ -117,6 +119,14 @@ export function RewritePanel({
     setHookMessage(t("hook.messages.applied"))
   }
 
+  function applyHookTemplate(template: HookTemplateId) {
+    if (!activeVariant) {
+      return
+    }
+
+    applyHook(createHookFromTemplate(template, post.title, activeVariant.body))
+  }
+
   return (
     <section className="rounded-2xl border border-border bg-card p-5 shadow-sm">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -157,7 +167,21 @@ export function RewritePanel({
                 <span className="rounded-md bg-muted px-2 py-1 text-xs text-muted-foreground">
                   {t("characterCount", { count: activeVariant.characterCount })}
                 </span>
+                {xLength ? (
+                  <span className={`rounded-md px-2 py-1 text-xs font-medium ${
+                    xLength.overLimit
+                      ? "bg-destructive/10 text-destructive"
+                      : "bg-primary/10 text-primary"
+                  }`}>
+                    {t("xCounter", { count: xLength.count, remaining: xLength.remaining })}
+                  </span>
+                ) : null}
               </div>
+              {xLength?.overLimit ? (
+                <p className="mt-3 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive" role="alert">
+                  {t("xLimitWarning")}
+                </p>
+              ) : null}
               <h3 className="mt-4 text-lg font-semibold text-foreground">{activeVariant.headline}</h3>
               <p className="mt-3 whitespace-pre-line text-sm leading-6 text-muted-foreground">{activeVariant.body}</p>
               <p className="mt-4 text-sm font-medium text-foreground">{activeVariant.callToAction}</p>
@@ -188,6 +212,19 @@ export function RewritePanel({
                       ))}
                     </div>
                   ) : null}
+                  <div className="mt-3 grid gap-2 sm:grid-cols-3">
+                    {hookTemplates.map((template) => (
+                      <button
+                        key={template.id}
+                        type="button"
+                        onClick={() => applyHookTemplate(template.id)}
+                        className="rounded-xl border border-border bg-background p-3 text-left transition hover:bg-accent focus:outline-none focus:ring-3 focus:ring-ring/20"
+                      >
+                        <span className="block text-sm font-semibold text-foreground">{template.label}</span>
+                        <span className="mt-1 block text-xs leading-5 text-muted-foreground">{template.description}</span>
+                      </button>
+                    ))}
+                  </div>
                   {hookMessage ? <p className="mt-3 text-sm text-muted-foreground" role="status">{hookMessage}</p> : null}
                 </div>
 
@@ -317,6 +354,131 @@ export function StatusPanel({ post }: { post: Post }) {
           {message.tone === "success" ? <CheckCircle2 className="mt-0.5 h-4 w-4" /> : <AlertCircle className="mt-0.5 h-4 w-4" />}
           <span>{message.text}</span>
         </div>
+      ) : null}
+    </section>
+  )
+}
+
+export function QueuePanel({ post }: { post: Post }) {
+  const t = useTranslations("postActions.queue")
+  const [queuedPost, setQueuedPost] = useState(post)
+  const [message, setMessage] = useState<{ tone: "success" | "error"; text: string } | null>(null)
+  const [isPending, startTransition] = useTransition()
+
+  function addToQueue() {
+    setMessage(null)
+    startTransition(async () => {
+      const response = await fetch(`/api/v1/posts/${post.id}/queue`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          timezone: queuedPost.timezone ?? "America/Los_Angeles",
+          version: queuedPost.version,
+        }),
+      })
+      const result = (await response.json()) as ApiResult<{ post: Post; mode: string }>
+
+      if (!result.ok || !result.data) {
+        setMessage({ tone: "error", text: result.error?.message ?? t("errors.failed") })
+        return
+      }
+
+      setQueuedPost(result.data.post)
+      setMessage({ tone: "success", text: t("messages.queued", { mode: result.data.mode }) })
+    })
+  }
+
+  return (
+    <section className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h2 className="text-base font-semibold text-foreground">{t("title")}</h2>
+          <p className="mt-1 text-sm text-muted-foreground">{t("description")}</p>
+        </div>
+        <Button type="button" variant="outline" disabled={isPending} onClick={addToQueue}>
+          {isPending ? <Loader2 className="animate-spin" data-icon="inline-start" /> : <CalendarPlus data-icon="inline-start" />}
+          {t("add")}
+        </Button>
+      </div>
+      <div className="mt-4 rounded-xl border border-border bg-background p-3 text-sm text-muted-foreground">
+        {queuedPost.queueStatus === "queued"
+          ? t("queuedSummary", {
+              date: queuedPost.scheduledDate,
+              time: queuedPost.scheduledTime ?? "09:00",
+              position: queuedPost.queuePosition ?? 1,
+            })
+          : t("empty")}
+      </div>
+      {message ? (
+        <div
+          role={message.tone === "success" ? "status" : "alert"}
+          className={`mt-3 rounded-xl border p-3 text-sm ${
+            message.tone === "success"
+              ? "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-400/30 dark:bg-emerald-400/10 dark:text-emerald-200"
+              : "border-destructive/30 bg-destructive/10 text-destructive"
+          }`}
+        >
+          {message.text}
+        </div>
+      ) : null}
+    </section>
+  )
+}
+
+export function CarouselExportPanel({ post }: { post: Post }) {
+  const t = useTranslations("postActions.carousel")
+  const [downloadPath, setDownloadPath] = useState<string | null>(null)
+  const [message, setMessage] = useState<{ tone: "success" | "error"; text: string } | null>(null)
+  const [isPending, startTransition] = useTransition()
+
+  function generateExport() {
+    setMessage(null)
+    startTransition(async () => {
+      const response = await fetch(`/api/v1/posts/${post.id}/carousel`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ title: post.title }),
+      })
+      const result = (await response.json()) as ApiResult<{
+        downloadPath: string
+        generation: { source: "openai" | "fallback"; warning?: string }
+      }>
+
+      if (!result.ok || !result.data) {
+        setMessage({ tone: "error", text: result.error?.message ?? t("errors.failed") })
+        return
+      }
+
+      setDownloadPath(result.data.downloadPath)
+      setMessage({
+        tone: "success",
+        text: result.data.generation.warning ?? t("messages.generated", { source: result.data.generation.source }),
+      })
+    })
+  }
+
+  return (
+    <section className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+      <h2 className="text-base font-semibold text-foreground">{t("title")}</h2>
+      <p className="mt-1 text-sm text-muted-foreground">{t("description")}</p>
+      <div className="mt-4 flex flex-wrap gap-2">
+        <Button type="button" variant="outline" disabled={isPending} onClick={generateExport}>
+          {isPending ? <Loader2 className="animate-spin" data-icon="inline-start" /> : <Download data-icon="inline-start" />}
+          {t("generate")}
+        </Button>
+        {downloadPath ? (
+          <Button asChild>
+            <a href={downloadPath} download>
+              <Download data-icon="inline-start" />
+              {t("download")}
+            </a>
+          </Button>
+        ) : null}
+      </div>
+      {message ? (
+        <p className={`mt-3 text-sm ${message.tone === "error" ? "text-destructive" : "text-muted-foreground"}`} role={message.tone === "error" ? "alert" : "status"}>
+          {message.text}
+        </p>
       ) : null}
     </section>
   )

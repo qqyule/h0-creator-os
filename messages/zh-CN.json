@@ -221,6 +221,8 @@
       "generate": "生成改写",
       "platformGroup": "选择平台改写目标",
       "characterCount": "{count} 字符",
+      "xCounter": "X 加权：{count}/280（剩余 {remaining}）",
+      "xLimitWarning": "当前 X 版本超过标准长度。发布前请人工检查；CreatorOS 不会自动截断。",
       "messages": {
         "generated": "已通过 {source} 生成改写。"
       },
@@ -252,6 +254,31 @@
         "description": "用指定语气重新生成当前平台版本。",
         "selectLabel": "语气覆盖",
         "apply": "应用语气"
+      }
+    },
+    "queue": {
+      "title": "发布队列",
+      "description": "把这条内容放到下一个内部排期空档。不会发布到任何社交平台。",
+      "add": "加入队列",
+      "empty": "这条内容还没有加入队列。",
+      "queuedSummary": "已排到第 {position} 位：{date} {time}。",
+      "messages": {
+        "queued": "内容已加入 {mode} 模式队列。"
+      },
+      "errors": {
+        "failed": "加入队列失败。"
+      }
+    },
+    "carousel": {
+      "title": "LinkedIn PDF Carousel",
+      "description": "从当前内容生成简洁的文档式 PDF。导出在服务端完成，不会发布到外部平台。",
+      "generate": "生成 PDF",
+      "download": "下载 PDF",
+      "messages": {
+        "generated": "已通过 {source} 生成 Carousel。"
+      },
+      "errors": {
+        "failed": "Carousel 导出失败。"
       }
     },
     "status": {
@@ -405,6 +432,26 @@
     "errors": {
       "generateFailed": "洞察生成失败。"
     }
+  },
+  "ideaInbox": {
+    "title": "选题收集箱",
+    "description": "先收集一方选题和已批准的趋势输入，再转成计划内容。",
+    "fields": {
+      "title": "选题标题",
+      "description": "这个选题为什么重要",
+      "noPlatform": "不指定平台"
+    },
+    "create": "添加选题",
+    "markPlanned": "标记为已计划",
+    "archive": "归档选题",
+    "messages": {
+      "created": "选题已添加。"
+    },
+    "errors": {
+      "createFailed": "选题创建失败。",
+      "updateFailed": "选题更新失败。"
+    },
+    "empty": "暂无选题。可以手动添加，或由管理员导入已批准趋势。"
   },
   "settings": {
     "eyebrow": "设置",

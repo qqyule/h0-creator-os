@@ -5,7 +5,7 @@ import { getTranslations } from "next-intl/server"
 import { AppShell } from "@/components/app/app-shell"
 import { PlatformPill } from "@/components/app/platform-pill"
 import { StatusBadge } from "@/components/app/status-badge"
-import { DraftPanel, MetricEntryPanel, RewritePanel, StatusPanel } from "@/components/post/post-actions"
+import { CarouselExportPanel, DraftPanel, MetricEntryPanel, QueuePanel, RewritePanel, StatusPanel } from "@/components/post/post-actions"
 import { Button } from "@/components/ui/button"
 import type { PostDetail } from "@/lib/domain"
 import { ContentNotFoundError, getPostDetail } from "@/lib/repositories/content-repository"
@@ -75,6 +75,8 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
 
           <div className="flex flex-col gap-5">
             <StatusPanel post={post} />
+            <QueuePanel post={post} />
+            <CarouselExportPanel post={post} />
             <MetricEntryPanel post={post} initialMetrics={detail.metrics} />
           </div>
         </section>

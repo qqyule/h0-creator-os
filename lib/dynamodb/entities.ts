@@ -74,6 +74,109 @@ export const ProfileEntity = new Entity(
   { client, table },
 )
 
+export const BrandVoiceEntity = new Entity(
+  {
+    model: { entity: "BrandVoice", service, version },
+    attributes: {
+      workspaceId: { type: "string", required: true },
+      traits: { type: "list", items: { type: "string" }, required: true },
+      examples: { type: "any", required: true },
+      updatedAt: { type: "string", required: true },
+    },
+    indexes: {
+      brandVoice: {
+        pk: commonIndexes.primary.pk,
+        sk: {
+          field: "sk",
+          composite: [],
+          template: "BRAND_VOICE",
+        },
+      },
+    },
+  },
+  { client, table },
+)
+
+export const IdeaEntity = new Entity(
+  {
+    model: { entity: "Idea", service, version },
+    attributes: {
+      id: { type: "string", required: true },
+      workspaceId: { type: "string", required: true },
+      title: { type: "string", required: true },
+      description: { type: "string", required: true },
+      source: { type: "string", required: true },
+      status: { type: "string", required: true },
+      platform: { type: "string" },
+      createdAt: { type: "string", required: true },
+      updatedAt: { type: "string", required: true },
+    },
+    indexes: {
+      idea: {
+        pk: commonIndexes.primary.pk,
+        sk: {
+          field: "sk",
+          composite: ["id"],
+          template: "IDEA#${id}",
+        },
+      },
+      byCreatedAt: {
+        index: "gsi1",
+        pk: {
+          field: "gsi1pk",
+          composite: ["workspaceId"],
+          template: "WORKSPACE#${workspaceId}#IDEAS",
+        },
+        sk: {
+          field: "gsi1sk",
+          composite: ["createdAt", "id"],
+          template: "IDEA#${createdAt}#${id}",
+        },
+      },
+    },
+  },
+  { client, table },
+)
+
+export const CarouselExportEntity = new Entity(
+  {
+    model: { entity: "CarouselExport", service, version },
+    attributes: {
+      id: { type: "string", required: true },
+      workspaceId: { type: "string", required: true },
+      postId: { type: "string", required: true },
+      title: { type: "string", required: true },
+      slides: { type: "any", required: true },
+      s3Key: { type: "string" },
+      createdAt: { type: "string", required: true },
+    },
+    indexes: {
+      export: {
+        pk: commonIndexes.primary.pk,
+        sk: {
+          field: "sk",
+          composite: ["postId", "id"],
+          template: "POST#${postId}#CAROUSEL#${id}",
+        },
+      },
+      byPost: {
+        index: "gsi1",
+        pk: {
+          field: "gsi1pk",
+          composite: ["workspaceId", "postId"],
+          template: "WORKSPACE#${workspaceId}#POST#${postId}#CAROUSEL",
+        },
+        sk: {
+          field: "gsi1sk",
+          composite: ["createdAt", "id"],
+          template: "CAROUSEL#${createdAt}#${id}",
+        },
+      },
+    },
+  },
+  { client, table },
+)
+
 export const MonthlyPlanEntity = new Entity(
   {
     model: { entity: "MonthlyPlan", service, version },
@@ -126,6 +229,10 @@ export const PostEntity = new Entity(
       status: { type: "string", required: true },
       primaryPlatform: { type: "string", required: true },
       platforms: { type: "list", items: { type: "string" }, required: true },
+      scheduledTime: { type: "string" },
+      timezone: { type: "string" },
+      queueStatus: { type: "string" },
+      queuePosition: { type: "number" },
       externalId: { type: "string" },
       publishedUrl: { type: "string" },
       version: { type: "number", required: true },
@@ -378,6 +485,9 @@ export const AiSettingsEntity = new Entity(
 export const ContentService = new Service(
   {
     profile: ProfileEntity,
+    brandVoice: BrandVoiceEntity,
+    idea: IdeaEntity,
+    carouselExport: CarouselExportEntity,
     monthlyPlan: MonthlyPlanEntity,
     post: PostEntity,
     platformVariant: PlatformVariantEntity,

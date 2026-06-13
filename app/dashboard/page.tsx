@@ -4,6 +4,7 @@ import { redirect } from "next/navigation"
 import { getTranslations } from "next-intl/server"
 import { AppShell } from "@/components/app/app-shell"
 import { DashboardGuide } from "@/components/dashboard/dashboard-guide"
+import { IdeaInbox } from "@/components/dashboard/idea-inbox"
 import { PlatformPill } from "@/components/app/platform-pill"
 import { StatusBadge } from "@/components/app/status-badge"
 import { ThemeToggle } from "@/components/theme-toggle"
@@ -189,6 +190,8 @@ export default async function DashboardPage() {
             </div>
           </div>
         </section>
+
+        <IdeaInbox initialIdeas={summary.ideas} />
 
         <section className="min-w-0 rounded-2xl border border-border bg-card p-5 shadow-sm">
           <div className="flex items-center gap-2">
