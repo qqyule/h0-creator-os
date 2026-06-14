@@ -2,9 +2,10 @@
 
 import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
-import { AlertCircle, CheckCircle2, Loader2, Save } from "lucide-react"
+import { Loader2, Save } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
+import { toastApiError, toastInfo } from "@/lib/client/api-toast"
 import type { AccountDna, PlatformId } from "@/lib/domain"
 
 const platformOptions: { value: PlatformId; label: string }[] = [
@@ -29,7 +30,6 @@ export function AccountDnaForm({ profile }: { profile: AccountDna }) {
   const t = useTranslations("accountDnaForm")
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
-  const [message, setMessage] = useState<{ tone: "success" | "error"; text: string } | null>(null)
   const [selectedPlatforms, setSelectedPlatforms] = useState<PlatformId[]>(profile.platforms)
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
 
@@ -104,7 +104,6 @@ export function AccountDnaForm({ profile }: { profile: AccountDna }) {
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     const formData = new FormData(event.currentTarget)
-    setMessage(null)
 
     if (!validateForm(formData)) return
 
@@ -127,14 +126,11 @@ export function AccountDnaForm({ profile }: { profile: AccountDna }) {
         const profileResult = (await profileResponse.json()) as ApiResult<{ warning?: string }>
 
         if (!profileResult.ok) {
-          setMessage({ tone: "error", text: profileResult.error?.message ?? t("errors.saveFailed") })
+          toastApiError(profileResult, t("errors.saveFailed"))
           return
         }
 
-        setMessage({
-          tone: "success",
-          text: profileResult.data?.warning ?? t("messages.generatingPlan"),
-        })
+        toastInfo(profileResult.data?.warning ?? t("messages.generatingPlan"))
 
         const planResponse = await fetch("/api/v1/plans/generate", {
           method: "POST",
@@ -147,13 +143,13 @@ export function AccountDnaForm({ profile }: { profile: AccountDna }) {
         }>
 
         if (!planResult.ok) {
-          setMessage({ tone: "error", text: planResult.error?.message ?? t("errors.planFailed") })
+          toastApiError(planResult, t("errors.planFailed"))
           return
         }
 
         router.push("/calendar")
       } catch {
-        setMessage({ tone: "error", text: t("errors.unexpected") })
+        toastApiError(null, t("errors.unexpected"))
       }
     })
   }
@@ -257,20 +253,6 @@ export function AccountDnaForm({ profile }: { profile: AccountDna }) {
           )}
         </div>
       </div>
-
-      {message ? (
-        <div
-          role={message.tone === "success" ? "status" : "alert"}
-          className={`mt-5 flex items-start gap-2 rounded-xl border p-3 text-sm ${
-            message.tone === "success"
-              ? "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-400/30 dark:bg-emerald-400/10 dark:text-emerald-200"
-              : "border-destructive/30 bg-destructive/10 text-destructive"
-          }`}
-        >
-          {message.tone === "success" ? <CheckCircle2 className="mt-0.5 h-4 w-4" /> : <AlertCircle className="mt-0.5 h-4 w-4" />}
-          <span>{message.text}</span>
-        </div>
-      ) : null}
 
       <div className="mt-5 flex justify-end">
         <Button type="submit" disabled={isPending} size="lg">

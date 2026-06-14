@@ -103,3 +103,11 @@ Use this file to record concise development progress. Do not paste raw chat tran
 - Verification: `pnpm typecheck`, `pnpm lint`, `pnpm build`, `git diff --check`, `vercel whoami`, `vercel link --project creatoros --yes`, `vercel env ls production`, `vercel deploy --prod --yes --logs`, `CREATOROS_BASE_URL=https://creatoros-six.vercel.app pnpm smoke:production`, secret exposure scan for tracked files plus `.next/static`, and final `DEMO#judge` reseed all completed.
 - Risks or notes: YouTube live sync was skipped because `GOOGLE_PUBLIC_API_KEY` is not configured in production. S3 `PutObject` works, but the current IAM identity cannot `HeadBucket`, `ListBucket`, or `DeleteObject`; a temporary smoke object remains under `smoke/` and should be cleaned up after IAM policy adjustment.
 - Next: Record Vercel Team ID outside the repository, clean up the temporary S3 smoke object after granting delete permission or using an owner/admin identity, record the demo video, and publish optional bonus content.
+
+## 2026-06-14 - P1.9 Global Toast Infrastructure Completed
+
+- Goal: Replace fragmented core-path component message blocks with a global Sonner toast system.
+- Changed: Added `sonner`, mounted the root `<Toaster />`, added a client-safe API/toast helper, and migrated onboarding, post actions, AI settings, and CSV import feedback to toast notifications while preserving inline field and row errors.
+- Verification: `pnpm lint`, `pnpm typecheck`, `pnpm build`, and `git diff --check` passed. Browser checks confirmed status update, manual metrics, CSV file-type error, and AI settings permission error toasts on the local demo fallback server.
+- Risks or notes: `CREATOROS_BASE_URL=http://localhost:3124 pnpm smoke:main-path` was blocked by an expired local AWS session. Fallback smoke on `localhost:3125` passed until the pre-existing PDF carousel path failed with `WinAnsi cannot encode "→"`.
+- Next: Re-run full smoke after AWS reauthentication and fix or avoid the PDF carousel arrow encoding issue before treating local smoke as fully green.

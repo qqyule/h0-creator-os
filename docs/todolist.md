@@ -162,6 +162,20 @@ This checklist is ordered around the MVP golden path:
 - [x] Save generated tasks through the content repository layer.
 - [x] Render action items as checkout cards on `/dashboard` and task marks on `/calendar`.
 
+## P1.9 - Global Toast Infrastructure
+
+### Global Setup
+- [x] Install `sonner` package via `pnpm`.
+- [x] Mount `<Toaster />` in the main root layout.
+- [x] Export or define unified API response helper mapping backend errors to `toast.error`.
+
+### Component Refactoring
+- [x] Refactor onboarding DNA form (`account-dna-form.tsx`) to use `toast` instead of local message alerts.
+- [x] Refactor post actions (`post-actions.tsx`) status updates, rewrites, and metrics manual entries to use `toast`.
+- [x] Refactor AI settings form (`ai-settings-form.tsx`) to use `toast`.
+- [x] Verify that immediate modal closures and routing do not cancel active toasts.
+- [x] Remove legacy local `message`/`setMessage` states and UI alerts where refactored.
+
 ## Submission
 
 - [x] Re-check official H0 rules and resources before final submission.

@@ -3,6 +3,7 @@
 import { AlertCircle, CheckCircle2, EyeOff, Loader2, PlugZap, Save } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { useEffect, useMemo, useState } from "react"
+import { readApiJson, toastApiError, toastSuccess } from "@/lib/client/api-toast"
 
 type PublicAiSettings = {
   baseUrl: string
@@ -13,30 +14,11 @@ type PublicAiSettings = {
   updatedAt?: string
 }
 
-type ApiResponse<T> =
-  | { ok: true; data: T }
-  | { ok: false; error: { code: string; message: string } }
-
 const emptySettings: PublicAiSettings = {
   baseUrl: "https://api.openai.com/v1",
   model: "gpt-4o-mini",
   enabled: false,
   hasApiKey: false,
-}
-
-async function readJson<T>(response: Response, fallbackMessage: string): Promise<ApiResponse<T>> {
-  const payload = (await response.json().catch(() => null)) as ApiResponse<T> | null
-  if (payload) {
-    return payload
-  }
-
-  return {
-    ok: false,
-    error: {
-      code: "provider_error",
-      message: fallbackMessage,
-    },
-  }
 }
 
 type FieldErrors = Partial<Record<"baseUrl" | "model", string>>
@@ -48,7 +30,6 @@ export function AiSettingsForm() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [testing, setTesting] = useState(false)
-  const [message, setMessage] = useState<{ tone: "success" | "error" | "info"; text: string } | null>(null)
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
 
   const keySummary = useMemo(() => {
@@ -67,7 +48,7 @@ export function AiSettingsForm() {
     async function loadSettings() {
       setLoading(true)
       const response = await fetch("/api/v1/settings/ai", { cache: "no-store" })
-      const payload = await readJson<PublicAiSettings>(response, t("errors.unexpectedResponse"))
+      const payload = await readApiJson<PublicAiSettings>(response, t("errors.unexpectedResponse"))
 
       if (!active) {
         return
@@ -75,9 +56,8 @@ export function AiSettingsForm() {
 
       if (payload.ok) {
         setSettings(payload.data)
-        setMessage(null)
       } else {
-        setMessage({ tone: "error", text: payload.error.message })
+        toastApiError(payload, t("errors.unexpectedResponse"))
       }
       setLoading(false)
     }
@@ -129,7 +109,6 @@ export function AiSettingsForm() {
     if (!validateSettings()) return
 
     setSaving(true)
-    setMessage(null)
 
     const response = await fetch("/api/v1/settings/ai", {
       method: "PUT",
@@ -141,14 +120,14 @@ export function AiSettingsForm() {
         apiKey: apiKey.trim() || undefined,
       }),
     })
-    const payload = await readJson<PublicAiSettings>(response, t("errors.unexpectedResponse"))
+    const payload = await readApiJson<PublicAiSettings>(response, t("errors.unexpectedResponse"))
 
     if (payload.ok) {
       setSettings(payload.data)
       setApiKey("")
-      setMessage({ tone: "success", text: t("messages.saved") })
+      toastSuccess(t("messages.saved"))
     } else {
-      setMessage({ tone: "error", text: payload.error.message })
+      toastApiError(payload, t("errors.unexpectedResponse"))
     }
 
     setSaving(false)
@@ -158,7 +137,6 @@ export function AiSettingsForm() {
     if (!validateSettings()) return
 
     setTesting(true)
-    setMessage(null)
 
     const response = await fetch("/api/v1/settings/ai/test", {
       method: "POST",
@@ -170,12 +148,12 @@ export function AiSettingsForm() {
         apiKey: apiKey.trim() || undefined,
       }),
     })
-    const payload = await readJson<{ model: string; sample?: string }>(response, t("errors.unexpectedResponse"))
+    const payload = await readApiJson<{ model: string; sample?: string }>(response, t("errors.unexpectedResponse"))
 
     if (payload.ok) {
-      setMessage({ tone: "success", text: t("messages.verified", { model: payload.data.model }) })
+      toastSuccess(t("messages.verified", { model: payload.data.model }))
     } else {
-      setMessage({ tone: "error", text: payload.error.message })
+      toastApiError(payload, t("errors.unexpectedResponse"))
     }
 
     setTesting(false)
@@ -276,21 +254,6 @@ export function AiSettingsForm() {
             <span className="mt-1 block text-sm leading-6 text-muted-foreground">{t("enableDescription")}</span>
           </span>
         </label>
-
-        {message ? (
-          <div
-            role={message.tone === "error" ? "alert" : "status"}
-            className={`rounded-xl border px-3 py-2 text-sm ${
-              message.tone === "success"
-                ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
-                : message.tone === "error"
-                  ? "border-destructive/35 bg-destructive/10 text-destructive"
-                  : "border-border bg-muted/45 text-muted-foreground"
-            }`}
-          >
-            {message.text}
-          </div>
-        ) : null}
 
         <div className="flex flex-col gap-3 border-t border-border pt-5 sm:flex-row sm:justify-end">
           <button

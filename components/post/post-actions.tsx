@@ -1,12 +1,13 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import { AlertCircle, CalendarPlus, CheckCircle2, Download, Loader2, PenLine, RefreshCw, Save, Sparkles } from "lucide-react"
+import { CalendarPlus, Download, Loader2, PenLine, RefreshCw, Save, Sparkles } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { PlatformPill } from "@/components/app/platform-pill"
 import { StatusBadge } from "@/components/app/status-badge"
 import { VisualMockupWorkspace } from "@/components/post/mockup-preview"
 import { Button } from "@/components/ui/button"
+import { toastApiError, toastInfo, toastSuccess } from "@/lib/client/api-toast"
 import {
   platformLabels,
   toneSandboxOptions,
@@ -37,8 +38,6 @@ export function RewritePanel({
   const t = useTranslations("postActions.rewrite")
   const [variants, setVariants] = useState(initialVariants)
   const [platform, setPlatform] = useState<PlatformId>(post.primaryPlatform)
-  const [message, setMessage] = useState<string | null>(null)
-  const [hookMessage, setHookMessage] = useState<string | null>(null)
   const [hooks, setHooks] = useState<string[]>([])
   const [tone, setTone] = useState<ToneSandbox>("Analytic")
   const [isPending, startTransition] = useTransition()
@@ -56,11 +55,9 @@ export function RewritePanel({
   function selectPlatform(nextPlatform: PlatformId) {
     setPlatform(nextPlatform)
     setHooks([])
-    setHookMessage(null)
   }
 
   function generateRewrite(toneOverride?: ToneSandbox) {
-    setMessage(null)
     startTransition(async () => {
       const response = await fetch(`/api/v1/posts/${post.id}/rewrite`, {
         method: "POST",
@@ -72,17 +69,20 @@ export function RewritePanel({
       }>
 
       if (!result.ok || !result.data) {
-        setMessage(result.error?.message ?? t("errors.generateFailed"))
+        toastApiError(result, t("errors.generateFailed"))
         return
       }
 
       updateVariant(result.data.generation.data)
-      setMessage(result.data.generation.warning ?? t("messages.generated", { source: result.data.generation.source }))
+      if (result.data.generation.warning) {
+        toastInfo(result.data.generation.warning)
+      } else {
+        toastSuccess(t("messages.generated", { source: result.data.generation.source }))
+      }
     })
   }
 
   function generateHooks() {
-    setHookMessage(null)
     startHookTransition(async () => {
       const response = await fetch(`/api/v1/posts/${post.id}/rewrite/hook`, {
         method: "POST",
@@ -96,12 +96,16 @@ export function RewritePanel({
       }>
 
       if (!result.ok || !result.data) {
-        setHookMessage(result.error?.message ?? t("hook.errors.generateFailed"))
+        toastApiError(result, t("hook.errors.generateFailed"))
         return
       }
 
       setHooks(result.data.hooks.slice(0, 3))
-      setHookMessage(result.data.warning ?? t("hook.messages.generated", { source: result.data.source }))
+      if (result.data.warning) {
+        toastInfo(result.data.warning)
+      } else {
+        toastSuccess(t("hook.messages.generated", { source: result.data.source }))
+      }
     })
   }
 
@@ -118,7 +122,7 @@ export function RewritePanel({
       status: "edited",
       updatedAt: new Date().toISOString(),
     })
-    setHookMessage(t("hook.messages.applied"))
+    toastSuccess(t("hook.messages.applied"))
   }
 
   function applyHookTemplate(template: HookTemplateId) {
@@ -227,7 +231,6 @@ export function RewritePanel({
                       </button>
                     ))}
                   </div>
-                  {hookMessage ? <p className="mt-3 text-sm text-muted-foreground" role="status">{hookMessage}</p> : null}
                 </div>
 
                 <div>
@@ -272,12 +275,6 @@ export function RewritePanel({
         )}
       </div>
 
-      {message ? (
-        <div className="mt-4 flex items-start gap-2 rounded-xl border border-border bg-muted/40 p-3 text-sm text-muted-foreground" role="status">
-          <CheckCircle2 className="mt-0.5 h-4 w-4 text-success" />
-          <span>{message}</span>
-        </div>
-      ) : null}
     </section>
   )
 }
@@ -297,11 +294,9 @@ export function StatusPanel({ post }: { post: Post }) {
   const t = useTranslations("postActions.status")
   const [status, setStatus] = useState(post.status)
   const [version, setVersion] = useState(post.version)
-  const [message, setMessage] = useState<{ tone: "success" | "error"; text: string } | null>(null)
   const [isPending, startTransition] = useTransition()
 
   function updateStatus(nextStatus: Post["status"]) {
-    setMessage(null)
     startTransition(async () => {
       const response = await fetch(`/api/v1/posts/${post.id}/status`, {
         method: "PATCH",
@@ -311,13 +306,13 @@ export function StatusPanel({ post }: { post: Post }) {
       const result = (await response.json()) as ApiResult<{ post: Post }>
 
       if (!result.ok || !result.data) {
-        setMessage({ tone: "error", text: result.error?.message ?? t("errors.updateFailed") })
+        toastApiError(result, t("errors.updateFailed"))
         return
       }
 
       setStatus(result.data.post.status)
       setVersion(result.data.post.version)
-      setMessage({ tone: "success", text: t("messages.updated") })
+      toastSuccess(t("messages.updated"))
     })
   }
 
@@ -344,19 +339,6 @@ export function StatusPanel({ post }: { post: Post }) {
           </Button>
         ))}
       </div>
-      {message ? (
-        <div
-          role={message.tone === "success" ? "status" : "alert"}
-          className={`mt-4 flex items-start gap-2 rounded-xl border p-3 text-sm ${
-            message.tone === "success"
-              ? "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-400/30 dark:bg-emerald-400/10 dark:text-emerald-200"
-              : "border-destructive/30 bg-destructive/10 text-destructive"
-          }`}
-        >
-          {message.tone === "success" ? <CheckCircle2 className="mt-0.5 h-4 w-4" /> : <AlertCircle className="mt-0.5 h-4 w-4" />}
-          <span>{message.text}</span>
-        </div>
-      ) : null}
     </section>
   )
 }
@@ -364,11 +346,9 @@ export function StatusPanel({ post }: { post: Post }) {
 export function QueuePanel({ post }: { post: Post }) {
   const t = useTranslations("postActions.queue")
   const [queuedPost, setQueuedPost] = useState(post)
-  const [message, setMessage] = useState<{ tone: "success" | "error"; text: string } | null>(null)
   const [isPending, startTransition] = useTransition()
 
   function addToQueue() {
-    setMessage(null)
     startTransition(async () => {
       const response = await fetch(`/api/v1/posts/${post.id}/queue`, {
         method: "POST",
@@ -381,12 +361,12 @@ export function QueuePanel({ post }: { post: Post }) {
       const result = (await response.json()) as ApiResult<{ post: Post; mode: string }>
 
       if (!result.ok || !result.data) {
-        setMessage({ tone: "error", text: result.error?.message ?? t("errors.failed") })
+        toastApiError(result, t("errors.failed"))
         return
       }
 
       setQueuedPost(result.data.post)
-      setMessage({ tone: "success", text: t("messages.queued", { mode: result.data.mode }) })
+      toastSuccess(t("messages.queued", { mode: result.data.mode }))
     })
   }
 
@@ -411,18 +391,6 @@ export function QueuePanel({ post }: { post: Post }) {
             })
           : t("empty")}
       </div>
-      {message ? (
-        <div
-          role={message.tone === "success" ? "status" : "alert"}
-          className={`mt-3 rounded-xl border p-3 text-sm ${
-            message.tone === "success"
-              ? "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-400/30 dark:bg-emerald-400/10 dark:text-emerald-200"
-              : "border-destructive/30 bg-destructive/10 text-destructive"
-          }`}
-        >
-          {message.text}
-        </div>
-      ) : null}
     </section>
   )
 }
@@ -430,11 +398,9 @@ export function QueuePanel({ post }: { post: Post }) {
 export function CarouselExportPanel({ post }: { post: Post }) {
   const t = useTranslations("postActions.carousel")
   const [downloadPath, setDownloadPath] = useState<string | null>(null)
-  const [message, setMessage] = useState<{ tone: "success" | "error"; text: string } | null>(null)
   const [isPending, startTransition] = useTransition()
 
   function generateExport() {
-    setMessage(null)
     startTransition(async () => {
       const response = await fetch(`/api/v1/posts/${post.id}/carousel`, {
         method: "POST",
@@ -447,15 +413,16 @@ export function CarouselExportPanel({ post }: { post: Post }) {
       }>
 
       if (!result.ok || !result.data) {
-        setMessage({ tone: "error", text: result.error?.message ?? t("errors.failed") })
+        toastApiError(result, t("errors.failed"))
         return
       }
 
       setDownloadPath(result.data.downloadPath)
-      setMessage({
-        tone: "success",
-        text: result.data.generation.warning ?? t("messages.generated", { source: result.data.generation.source }),
-      })
+      if (result.data.generation.warning) {
+        toastInfo(result.data.generation.warning)
+      } else {
+        toastSuccess(t("messages.generated", { source: result.data.generation.source }))
+      }
     })
   }
 
@@ -477,11 +444,6 @@ export function CarouselExportPanel({ post }: { post: Post }) {
           </Button>
         ) : null}
       </div>
-      {message ? (
-        <p className={`mt-3 text-sm ${message.tone === "error" ? "text-destructive" : "text-muted-foreground"}`} role={message.tone === "error" ? "alert" : "status"}>
-          {message.text}
-        </p>
-      ) : null}
     </section>
   )
 }
@@ -489,8 +451,6 @@ export function CarouselExportPanel({ post }: { post: Post }) {
 export function MetricEntryPanel({ post, initialMetrics }: { post: Post; initialMetrics: PostMetric[] }) {
   const t = useTranslations("postActions.metrics")
   const [metrics, setMetrics] = useState(initialMetrics)
-  const [message, setMessage] = useState<string | null>(null)
-  const [syncMessage, setSyncMessage] = useState<{ tone: "success" | "error"; text: string } | null>(null)
   const [externalId, setExternalId] = useState(post.externalId ?? "")
   const [publishedUrl, setPublishedUrl] = useState(post.publishedUrl ?? "")
   const [isPending, startTransition] = useTransition()
@@ -504,7 +464,6 @@ export function MetricEntryPanel({ post, initialMetrics }: { post: Post; initial
   function syncLiveStats(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const formData = new FormData(event.currentTarget)
-    setSyncMessage(null)
     
     const errors: SyncErrors = {}
     const parsedExternalId = String(formData.get("externalId") ?? "").trim()
@@ -547,21 +506,20 @@ export function MetricEntryPanel({ post, initialMetrics }: { post: Post; initial
       }>
 
       if (!result.ok || !result.data) {
-        setSyncMessage({ tone: "error", text: result.error?.message ?? t("sync.errors.failed") })
+        toastApiError(result, t("sync.errors.failed"))
         return
       }
 
       setMetrics((current) => [result.data!.metric, ...current])
       setExternalId(result.data.externalId)
       setPublishedUrl(result.data.publishedUrl ?? "")
-      setSyncMessage({ tone: "success", text: t("sync.messages.synced", { mode: result.data.mode }) })
+      toastSuccess(t("sync.messages.synced", { mode: result.data.mode }))
     })
   }
 
   function handleManualMetricsSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const formData = new FormData(event.currentTarget)
-    setMessage(null)
     
     const errors: MetricErrors = {}
     const fields = ["views", "likes", "comments", "saves", "followersGained"] as const
@@ -596,12 +554,12 @@ export function MetricEntryPanel({ post, initialMetrics }: { post: Post; initial
       const result = (await response.json()) as ApiResult<{ metric: PostMetric; mode: string }>
 
       if (!result.ok || !result.data) {
-        setMessage(result.error?.message ?? t("errors.saveFailed"))
+        toastApiError(result, t("errors.saveFailed"))
         return
       }
 
       setMetrics((current) => [result.data!.metric, ...current])
-      setMessage(t("messages.saved", { mode: result.data.mode }))
+      toastSuccess(t("messages.saved", { mode: result.data.mode }))
     })
   }
 
@@ -686,19 +644,6 @@ export function MetricEntryPanel({ post, initialMetrics }: { post: Post; initial
           {t("sync.button")}
         </Button>
       </form>
-      {syncMessage ? (
-        <div
-          role={syncMessage.tone === "success" ? "status" : "alert"}
-          className={`mt-3 flex items-start gap-2 rounded-xl border p-3 text-sm ${
-            syncMessage.tone === "success"
-              ? "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-400/30 dark:bg-emerald-400/10 dark:text-emerald-200"
-              : "border-destructive/30 bg-destructive/10 text-destructive"
-          }`}
-        >
-          {syncMessage.tone === "success" ? <CheckCircle2 className="mt-0.5 h-4 w-4" /> : <AlertCircle className="mt-0.5 h-4 w-4" />}
-          <span>{syncMessage.text}</span>
-        </div>
-      ) : null}
       <form onSubmit={handleManualMetricsSubmit} className="mt-4 grid gap-3" noValidate>
         <div className="border-t border-border pt-4">
           <h3 className="text-sm font-semibold text-foreground">{t("manualTitle")}</h3>
@@ -715,7 +660,6 @@ export function MetricEntryPanel({ post, initialMetrics }: { post: Post; initial
           {t("save")}
         </Button>
       </form>
-      {message ? <p className="mt-3 text-sm text-muted-foreground" role="status">{message}</p> : null}
       <div className="mt-4 grid gap-2">
         {metrics.length ? (
           metrics.slice(0, 3).map((metric) => (
@@ -741,12 +685,10 @@ export function MetricEntryPanel({ post, initialMetrics }: { post: Post; initial
 
 export function DraftPanel({ post }: { post: Post }) {
   const t = useTranslations("postActions.draft")
-  const [message, setMessage] = useState<string | null>(null)
   const [draft, setDraft] = useState(post.draft)
   const [isPending, startTransition] = useTransition()
 
   function generateDraft() {
-    setMessage(null)
     startTransition(async () => {
       const response = await fetch(`/api/v1/posts/${post.id}/draft`, {
         method: "POST",
@@ -756,12 +698,16 @@ export function DraftPanel({ post }: { post: Post }) {
       const result = (await response.json()) as ApiResult<{ generation: { data: { body: string; version: number }; warning?: string } }>
 
       if (!result.ok || !result.data) {
-        setMessage(result.error?.message ?? t("errors.generateFailed"))
+        toastApiError(result, t("errors.generateFailed"))
         return
       }
 
       setDraft(result.data.generation.data.body)
-      setMessage(result.data.generation.warning ?? t("messages.generated", { version: result.data.generation.data.version }))
+      if (result.data.generation.warning) {
+        toastInfo(result.data.generation.warning)
+      } else {
+        toastSuccess(t("messages.generated", { version: result.data.generation.data.version }))
+      }
     })
   }
 
@@ -777,7 +723,6 @@ export function DraftPanel({ post }: { post: Post }) {
       <p className="mt-4 whitespace-pre-line rounded-xl border border-border bg-background p-4 text-sm leading-6 text-muted-foreground">
         {draft}
       </p>
-      {message ? <p className="mt-3 text-sm text-muted-foreground" role="status">{message}</p> : null}
     </section>
   )
 }

@@ -4,6 +4,7 @@ import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import { NextIntlClientProvider } from 'next-intl'
 import { getLocale, getMessages } from 'next-intl/server'
+import { Toaster } from 'sonner'
 import { ThemeProvider } from '@/components/theme-provider'
 import 'driver.js/dist/driver.css'
 import './globals.css'
@@ -53,6 +54,7 @@ async function RootProviders({ children }: { children: React.ReactNode }) {
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
       <NextIntlClientProvider locale={locale} messages={messages}>
         {children}
+        <Toaster position="bottom-right" theme="system" richColors closeButton visibleToasts={3} />
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </NextIntlClientProvider>
     </ThemeProvider>

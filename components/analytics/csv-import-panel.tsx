@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl"
 import { z } from "zod"
 import { PlatformPill } from "@/components/app/platform-pill"
 import { Button } from "@/components/ui/button"
+import { toastApiError, toastInfo, toastSuccess } from "@/lib/client/api-toast"
 import { metricInputSchema, type Post, type PostMetric } from "@/lib/domain"
 
 type ApiResult<T> = {
@@ -29,6 +30,11 @@ type Delta = {
   followersGained: number
 }
 
+type BackupResult = {
+  ok: boolean
+  message: string
+}
+
 const csvHeaders = ["postId", "platform", "publishedAt", "views", "likes", "comments", "saves", "followersGained"]
 
 export function CsvImportPanel({ posts, metrics }: { posts: Post[]; metrics: PostMetric[] }) {
@@ -36,8 +42,6 @@ export function CsvImportPanel({ posts, metrics }: { posts: Post[]; metrics: Pos
   const fileRef = useRef<HTMLInputElement>(null)
   const [file, setFile] = useState<File | null>(null)
   const [rows, setRows] = useState<ParsedRow[]>([])
-  const [message, setMessage] = useState<string | null>(null)
-  const [s3Message, setS3Message] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
   const validRows = rows.filter((row) => row.metric)
   const invalidRows = rows.filter((row) => row.error)
@@ -46,24 +50,19 @@ export function CsvImportPanel({ posts, metrics }: { posts: Post[]; metrics: Pos
   function reset() {
     setFile(null)
     setRows([])
-    setMessage(null)
-    setS3Message(null)
     if (fileRef.current) {
       fileRef.current.value = ""
     }
   }
 
   async function handleFileChange(nextFile: File | undefined) {
-    setMessage(null)
-    setS3Message(null)
-
     if (!nextFile) {
       reset()
       return
     }
 
     if (!nextFile.name.toLowerCase().endsWith(".csv")) {
-      setMessage(t("errors.fileType"))
+      toastApiError(null, t("errors.fileType"))
       reset()
       return
     }
@@ -75,15 +74,17 @@ export function CsvImportPanel({ posts, metrics }: { posts: Post[]; metrics: Pos
 
   function commitImport() {
     if (!file || !validRows.length || invalidRows.length) {
-      setMessage(t("errors.invalidRows"))
+      toastApiError(null, t("errors.invalidRows"))
       return
     }
 
-    setMessage(null)
-    setS3Message(null)
     startTransition(async () => {
       const backup = await backupRawCsv(file)
-      setS3Message(backup)
+      if (backup.ok) {
+        toastInfo(backup.message)
+      } else {
+        toastApiError(null, backup.message)
+      }
 
       const response = await fetch("/api/v1/metrics/import", {
         method: "POST",
@@ -93,11 +94,11 @@ export function CsvImportPanel({ posts, metrics }: { posts: Post[]; metrics: Pos
       const result = (await response.json()) as ApiResult<{ count: number }>
 
       if (!result.ok || !result.data) {
-        setMessage(result.error?.message ?? t("errors.importFailed"))
+        toastApiError(result, t("errors.importFailed"))
         return
       }
 
-      setMessage(t("messages.imported", { count: result.data.count }))
+      toastSuccess(t("messages.imported", { count: result.data.count }))
     })
   }
 
@@ -192,11 +193,7 @@ export function CsvImportPanel({ posts, metrics }: { posts: Post[]; metrics: Pos
             </div>
           ) : null}
 
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="min-w-0 text-sm text-muted-foreground">
-              {s3Message ? <p role="status">{s3Message}</p> : null}
-              {message ? <p role="status">{message}</p> : null}
-            </div>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
             <div className="flex flex-wrap gap-2">
               <Button variant="outline" onClick={reset} disabled={isPending}>{t("reset")}</Button>
               <Button onClick={commitImport} disabled={isPending || !validRows.length || Boolean(invalidRows.length)}>
@@ -210,7 +207,7 @@ export function CsvImportPanel({ posts, metrics }: { posts: Post[]; metrics: Pos
     </section>
   )
 
-  async function backupRawCsv(rawFile: File) {
+  async function backupRawCsv(rawFile: File): Promise<BackupResult> {
     const presignResponse = await fetch("/api/v1/assets/presign", {
       method: "POST",
       headers: { "content-type": "application/json" },
@@ -228,11 +225,11 @@ export function CsvImportPanel({ posts, metrics }: { posts: Post[]; metrics: Pos
     }>
 
     if (!presign.ok || !presign.data) {
-      return presign.error?.message ?? t("errors.backupFailed")
+      return { ok: false, message: presign.error?.message ?? t("errors.backupFailed") }
     }
 
     if (!presign.data.configured || !presign.data.uploadUrl) {
-      return presign.data.warning ?? t("messages.s3Unconfigured")
+      return { ok: true, message: presign.data.warning ?? t("messages.s3Unconfigured") }
     }
 
     const upload = await fetch(presign.data.uploadUrl, {
@@ -242,10 +239,10 @@ export function CsvImportPanel({ posts, metrics }: { posts: Post[]; metrics: Pos
     })
 
     if (!upload.ok) {
-      return t("errors.backupFailed")
+      return { ok: false, message: t("errors.backupFailed") }
     }
 
-    return t("messages.backedUp", { key: presign.data.key })
+    return { ok: true, message: t("messages.backedUp", { key: presign.data.key }) }
   }
 }
 

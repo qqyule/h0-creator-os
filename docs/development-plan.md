@@ -185,6 +185,20 @@ Acceptance criteria:
 - Unauthenticated access to protected routes like `/settings` is correctly blocked and redirected by Next.js Proxy when Clerk is configured.
 - AI settings can be saved and retrieved successfully without any disk-write operations, resolving Vercel deployment compatibility.
 
+### 5.9 Global Feedback & Toast Infrastructure
+
+Integrate a premium global feedback mechanism to replace fragmented component-level message states, providing uniform styling, improved user awareness, and robustness against component unmounting.
+
+- Install and configure `sonner` as the unified global Toast provider.
+- Mount the global `<Toaster />` component inside the root layout.
+- Refactor key interactive components (e.g., onboarding, post actions, settings, CSV upload) to consume `toast.success` and `toast.error` instead of local `useState` message blocks.
+- Align toast triggers with backend `ApiResponse` shapes to ensure all API actions (success and errors) are cleanly notified to the user.
+
+Acceptance criteria:
+- All form submissions (saving account DNA, updating post status, generating rewrites, importing CSVs, saving AI settings) show consistent toast alerts.
+- Toasts remain visible and fade out smoothly even if modals are closed or pages are navigated away immediately after a trigger.
+- Page layouts remain stable without shifting or shifting content due to local error message blocks.
+
 ### 6. Submission Hardening
 
 Stabilize the product and judging materials.
