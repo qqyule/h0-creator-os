@@ -1,0 +1,20 @@
+export const theme = {
+  background: "#090d1b",
+  panel: "rgba(18, 25, 47, 0.82)",
+  panelStrong: "rgba(23, 32, 60, 0.94)",
+  panelSoft: "rgba(30, 41, 71, 0.68)",
+  border: "rgba(148, 163, 184, 0.22)",
+  borderStrong: "rgba(148, 163, 184, 0.36)",
+  text: "#f8fafc",
+  muted: "#aab6cc",
+  dim: "#64748b",
+  primary: "#6366f1",
+  primarySoft: "#818cf8",
+  success: "#22c55e",
+  insight: "#facc15",
+  warning: "#fb923c",
+  rednote: "#f43f5e",
+  shadow: "0 30px 90px rgba(0, 0, 0, 0.32)",
+  fontFamily:
+    "Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif",
+} as const

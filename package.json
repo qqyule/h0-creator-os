@@ -8,6 +8,8 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit --pretty false",
+    "video:preview": "remotion studio remotion/index.tsx",
+    "video:render:animations": "remotion render remotion/index.tsx CreatorOSAnimations remotion/out/creatoros-h0-animations.mp4",
     "smoke:main-path": "node scripts/smoke-main-path.mjs",
     "smoke:production": "node scripts/smoke-production.mjs"
   },
@@ -41,6 +43,8 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@remotion/cli": "^4.0.477",
+    "@remotion/transitions": "^4.0.477",
     "@tailwindcss/postcss": "^4.2.0",
     "@types/node": "^24",
     "@types/react": "19.2.14",
@@ -48,6 +52,7 @@
     "eslint": "^9.39.4",
     "eslint-config-next": "^16.2.7",
     "postcss": "^8.5",
+    "remotion": "^4.0.477",
     "tailwindcss": "^4.2.0",
     "typescript": "5.7.3",
     "typescript-eslint": "^8.61.0"

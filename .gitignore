@@ -32,3 +32,9 @@ next-env.d.ts
 
 # local runtime settings
 .creatoros/
+
+# local Remotion renders and source media
+/remotion/out/
+/remotion/renders/
+/remotion/captures/
+/remotion/local-assets/
