@@ -1,6 +1,6 @@
 # TODO List
 
-Last updated: 2026-06-12
+Last updated: 2026-06-18
 
 This checklist is ordered around the MVP golden path:
 
@@ -185,14 +185,14 @@ This checklist is ordered around the MVP golden path:
 - [x] Verify S3 flow without exposing bucket credentials.
 - [x] Verify Resend smoke path with a safe test recipient or non-production route.
 - [x] Reset or reseed demo data before recording and submission.
-- [ ] Freeze judge-facing navigation names before video recording.
+- [x] Freeze judge-facing navigation names and submission positioning before video recording.
 - [x] Create architecture diagram with Browser, Vercel, AI service, DynamoDB, S3, Resend, Clerk, and deploy flow. Exported visuals are in `docs/architecture-diagram.svg` and `docs/architecture-diagram.png`.
 - [x] Write Devpost description in English and explain DynamoDB single-table and access-pattern design.
 - [x] Include DynamoDB runtime proof in the demo script: persisted demo workspace, GSI timeline/status reads, and conditional status updates.
 - [x] Capture storage configuration screenshot outside the repository.
 - [ ] Record Vercel Team ID outside the repository.
 - [ ] Record and publish a demo video under 3 minutes.
-- [ ] Publish up to 3 bonus content links with required hackathon attribution or hashtag.
+- [/] Prepare and publish up to 3 bonus content links with required hackathon attribution or hashtag. Drafts are ready in `docs/bonus-content-pack.md`; public URLs are pending.
 
 ## Deferred Unless Approved
 

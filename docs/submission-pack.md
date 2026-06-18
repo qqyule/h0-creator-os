@@ -1,185 +1,103 @@
 # CreatorOS Submission Pack
 
-Last updated: 2026-06-12
+Last updated: 2026-06-18
 
-This is the first submission-facing draft for H0. It should stay public-safe: do not add secrets, private account details, Vercel Team ID, storage screenshots, real user data, or private sample accounts.
+This document contains the final judge-facing copy and evidence checklist for H0. Keep it public-safe: do not add credentials, private account details, Vercel Team ID, private screenshots, or real user data.
 
 ## Official Requirements Snapshot
 
-Verified on 2026-06-12:
-
 - Submission deadline: June 29, 2026 at 5:00 PM PDT.
-- The project must use one required AWS database as the primary backend and deploy the frontend on Vercel or v0.app.
-- The submission needs a text description, a public demo video under 3 minutes, the AWS database used, an architecture diagram, a published Vercel project link, proof of AWS database usage, and a Vercel Team ID.
-- The demo must remain free and accessible for judging.
-- Bonus content must be public, explain how the project was built with a required AWS database and Vercel, state that it was created for this hackathon, and use `#H0Hackathon` when shared on social media.
+- Judging begins June 30, 2026.
+- The project must use a required AWS database as the primary backend and deploy its frontend on Vercel or v0.app.
+- Required materials include a text description, public video under three minutes, database selection, architecture diagram, published Vercel link, AWS database proof, and Vercel Team ID.
+- The demo must remain free and accessible during judging.
+- Public build content may qualify for Stage 2 bonus points when it follows the official attribution requirements.
 
-Sources:
+Sources: [H0 Rules](https://h01.devpost.com/rules) and [H0 Resources](https://h01.devpost.com/resources).
 
-- [H0 Rules](https://h01.devpost.com/rules)
-- [H0 Resources](https://h01.devpost.com/resources)
-
-## Devpost Draft
+## Devpost Copy
 
 ### Tagline
 
-CreatorOS helps creators plan, adapt, ship, measure, and improve their next 30 posts across platforms.
+Content operations for cross-platform creator teams.
 
-### What It Does
+### Project Description
 
-CreatorOS is an English-first B2B content operations system for independent creators, small studios, and cross-border content teams. Instead of starting with a blank calendar or a chat box, the product guides a team through a complete operating loop:
+Small creator teams publish like media companies, but they often operate from a patchwork of calendars, documents, platform drafts, and analytics spreadsheets. The difficult part is not generating one more caption. It is carrying the same strategy from planning through execution, measurement, and the next decision.
 
-1. Capture account DNA: niche, audience, platforms, cadence, tone, and goals.
-2. Generate or load a 30-day content plan.
-3. Open a post detail workflow with outline, draft, and status.
-4. Rewrite the same idea for LinkedIn, X, YouTube, and Rednote.
-5. Preview platform-specific creative treatments, test hooks, and adjust tone.
-6. Move work through `Idea -> Drafting -> Review -> Scheduled -> Published`.
-7. Enter manual metrics, import CSV metrics, or sync public YouTube stats.
-8. Generate next-cycle insights and actionable task cards.
+CreatorOS is an English-first content operations workspace for independent creators, small studios, and cross-border teams publishing on LinkedIn, X, YouTube, and Rednote. It helps a team plan the next 30 posts, adapt each idea for different platforms, track execution, and turn performance data into the next actions.
 
-The demo is built to feel like a content operations workspace, not a generic AI writing toy.
+The workflow starts with Account DNA: audience, niche, platforms, cadence, tone, and goals. CreatorOS turns that context into a monthly plan. Each planned idea opens as a production unit with an outline, draft, platform variants, workflow status, and metrics. After publication, the team can record performance and generate insights and tasks for the next cycle. The result is one continuous operating loop instead of disconnected AI prompts.
 
-### Key Features
+### Core Capabilities
 
-- Account DNA onboarding with validation and a stable demo workspace.
-- 30-day planning view across dashboard, calendar, and post detail routes.
-- Platform rewrite workflow for LinkedIn, X, YouTube, and Rednote.
-- Premium post previews for LinkedIn, X, and Rednote, plus Hook Enhancer and Tone Sandbox controls.
-- Status workflow with idempotent status updates and conflict-aware persistence.
-- Metrics feedback loop with manual entry, CSV import, S3 raw-file backup, and optional no-auth YouTube Data API sync.
-- Actionable tasks generated from analytics insights, shown on the dashboard and calendar.
-- Clerk authentication boundary with the judge demo path kept accessible.
-- Resend and S3 server-side service boundaries for notification and storage smoke coverage.
+1. **Account DNA and a 30-day plan.** Planning starts from a reusable strategy instead of a blank calendar.
+2. **Platform adaptation.** One source idea becomes variants for LinkedIn, X, YouTube, and Rednote, with previews, hook alternatives, and tone controls.
+3. **Execution workflow.** Posts move through `Idea -> Drafting -> Review -> Scheduled -> Published` with persisted status changes.
+4. **Metrics feedback loop.** Teams can enter metrics manually or import CSV data, with raw imports backed up through a server-side S3 path.
+5. **Insights and next actions.** Performance data becomes next-cycle insights and actionable tasks visible on the dashboard and calendar.
 
-### Technical Implementation
+### Why DynamoDB
 
-CreatorOS uses DynamoDB as the primary backend through a single-table, workspace-scoped design. The table stores Profile, MonthlyPlan, Post, PlatformVariant, DraftVersion, PostMetric, Insight, CreatorTask, and AiSettings items behind ElectroDB entities.
+CreatorOS uses DynamoDB because its core reads are organized by workspace, monthly timeline, workflow status, and platform—access patterns that map naturally to a workspace-scoped single-table model with targeted GSIs.
 
-The key design is deliberate:
+The table stores profiles, plans, posts, platform variants, draft versions, metrics, insights, and tasks without exposing key construction to feature code. Primary keys isolate the public `DEMO#judge` workspace from Clerk-backed user workspaces. GSI1 supports monthly timeline and metric queries used by the calendar and analytics views. GSI2 supports workflow status and platform-oriented queries. Status writes use version or timestamp conditions where practical so stale updates do not silently overwrite newer work.
 
-- Primary keys scope data by workspace, so `DEMO#judge` and authenticated Clerk workspaces stay isolated.
-- GSI1 supports monthly timeline and metrics reads for calendar, analytics, and insight generation.
-- GSI2 supports workflow status and platform views.
-- Repository functions are the only layer that reads or writes DynamoDB; UI components and API handlers do not construct raw keys.
-- Status updates use version or timestamp checks where practical to avoid silent overwrite.
-- AI outputs are schema-validated before persistence.
+ElectroDB defines the entities and indexes, while a repository layer is the only application layer allowed to read or write DynamoDB. Route handlers call typed repository functions; browser components never construct table keys or receive AWS credentials. This keeps the access-pattern design explicit and makes the database integration part of the product architecture rather than a box checked after the UI was built.
 
-The frontend is a Next.js App Router application deployed on Vercel, using TypeScript, Tailwind, shadcn/ui-style components, lucide icons, and next-intl with `en-US` as the default locale. Server credentials stay server-side.
+### How It Is Built
+
+The frontend and route handlers run in a Next.js App Router application deployed on Vercel. The primary persistence path is `Browser -> Vercel Route Handler -> Repository -> ElectroDB -> Amazon DynamoDB`. Server-side services also provide scoped S3 storage, Clerk identity, AI generation with schema validation, and optional public metrics integrations. These services support the workflow, but DynamoDB remains the primary application backend.
+
+AI output is validated before persistence. The public demo uses a deterministic, isolated workspace so judges can inspect the full product without creating an account or connecting a social platform. CreatorOS deliberately avoids real social OAuth and auto-publishing in this version; the goal is to prove a reliable content operations loop rather than expand into risky integrations.
+
+### How To Test It
+
+Open [the public dashboard](https://creatoros-six.vercel.app/dashboard) without signing in. Review the monthly operating view, open the calendar, and select `post-01`. In post detail, inspect the source draft and platform variants, change the workflow status, and save manual metrics. Then open analytics to see how metrics produce insights and actionable tasks. The seeded workspace is designed to make this path understandable even when an external AI or public-data provider is unavailable.
 
 ### Why It Matters
 
-Small creator teams already operate like media companies, but their tools are fragmented: calendars in one place, platform drafts in another, analytics in spreadsheets, and no reliable feedback loop. CreatorOS turns that into one measurable workflow. The product can become a monetizable B2B workspace for creators, agencies, and cross-border content teams that need repeatable content operations.
+CreatorOS is designed for small teams that have outgrown isolated writing tools but do not need an enterprise publishing suite. The same workflow can support a solo creator, a small studio, or a cross-border content team that needs repeatable planning, platform adaptation, execution visibility, and learning from results. That creates a clear path to a monetizable B2B workspace while keeping the H0 build focused and testable.
 
-### What Is New During H0
+### What Was Built During H0
 
-CreatorOS was built into a full-stack Vercel and DynamoDB application during the H0 submission period. The project added the DynamoDB/ElectroDB data model, repository boundary, workspace scoping, Clerk auth boundary, S3 and Resend server-side integrations, AI generation and validation flows, the complete demo path, CSV metrics import, optional YouTube public data sync, and submission-focused UI polish.
+During H0, CreatorOS became a deployed full-stack application with a DynamoDB/ElectroDB model, repository boundary, workspace isolation, conditional workflow updates, a stable public demo, validated generation flows, metrics import, analytics insights, actionable tasks, and judge-facing submission evidence.
 
-### Database Used
+## Demo Video
 
-Amazon DynamoDB.
+- Target length: 2:41.
+- Format: 1920x1080, 30fps, English narration and captions.
+- Real product footage: approximately 122 seconds.
+- Remotion animation: 39 seconds.
+- Final recording plan and narration: [demo-video-recording-script.md](./demo-video-recording-script.md).
 
-### Testing Instructions
+## Submission Fields
 
-- Open the published Vercel URL.
-- Use the public demo workspace without signing in.
-- Start at `/dashboard`, then open `/calendar`, `/post/post-01`, and `/analytics`.
-- In post detail, generate or inspect platform rewrites, apply a hook locally, try a tone rewrite, change status, and save manual metrics.
-- In analytics, download the CSV template, upload a valid CSV, preview deltas, commit metrics, and generate action items.
-- If configured, test YouTube public stats sync from `/post/post-01` with a public video ID.
-
-## Demo Video Script
-
-Target length: 2:35-2:50. Keep narration in English.
-
-| Time | Screen | Narration |
-| --- | --- | --- |
-| 0:00-0:15 | Dashboard | "Creator teams do not just need another AI writer. They need an operating system for planning, adapting, shipping, and improving content." |
-| 0:15-0:35 | Onboarding | "CreatorOS starts with account DNA: audience, platforms, cadence, tone, and goals. That becomes the context for every plan and rewrite." |
-| 0:35-0:55 | Calendar | "The workspace turns that context into a 30-day plan with formats, goals, and scheduled posts." |
-| 0:55-1:25 | Post detail | "One idea becomes platform-specific variants for LinkedIn, X, YouTube, and Rednote. The editor includes visual previews, hook alternatives, and tone experiments." |
-| 1:25-1:45 | Status workflow | "The post moves through an operations workflow from idea to published, backed by conditional persistence instead of silent overwrite." |
-| 1:45-2:05 | Analytics | "After publishing, the team can enter metrics, import a CSV, or sync public YouTube stats without social OAuth." |
-| 2:05-2:25 | Insights and tasks | "Metrics feed next-cycle insights, and those insights become actionable task cards on the dashboard and calendar." |
-| 2:25-2:45 | Architecture diagram | "The backend uses DynamoDB as the primary database with a single-table model, ElectroDB entities, workspace-scoped keys, timeline and status GSIs, and server-side integrations for S3, Resend, Clerk, AI, and YouTube." |
-| 2:45-2:50 | Dashboard | "CreatorOS is built to ship content operations, not just generate drafts." |
-
-## Architecture Diagram Draft
-
-```mermaid
-flowchart LR
-  browser["Browser\nCreatorOS UI"] --> vercel["Vercel\nNext.js App Router"]
-  vercel --> api["Route Handlers\n/api/v1/*"]
-  api --> repo["Repository Layer\nTyped domain functions"]
-  repo --> electro["ElectroDB Entities\nsingle-table access patterns"]
-  electro --> dynamo["AWS DynamoDB\nprimary backend"]
-
-  api --> s3["AWS S3\nCSV import backup and assets"]
-  api --> resend["Resend\nserver-side notification smoke"]
-  api --> ai["OpenAI-compatible provider\nplan, rewrite, insight, tasks"]
-  api --> youtube["YouTube Data API v3\noptional public metrics sync"]
-  vercel --> clerk["Clerk\nuser/session identity"]
-
-  subgraph AWS
-    dynamo
-    s3
-  end
-```
-
-Diagram export notes:
-
-- Label DynamoDB as the primary backend.
-- Show calls as directional arrows.
-- Group DynamoDB and S3 inside AWS.
-- Keep Vercel Team ID and private screenshots outside this repository.
-- Include YouTube Data API v3 as optional public metrics sync, not as OAuth or publishing.
-- Exported files: `docs/architecture-diagram.svg` and `docs/architecture-diagram.png`.
+- Project name: CreatorOS.
+- AWS database used: Amazon DynamoDB.
+- Live demo: `https://creatoros-six.vercel.app`.
+- Direct judge path: `https://creatoros-six.vercel.app/dashboard`.
+- Architecture diagram: `docs/architecture-diagram.png`.
+- Public video URL: pending publication.
+- Bonus content URLs: pending publication.
+- Vercel Team ID and private AWS evidence: stored outside the repository.
 
 ## Evidence Checklist
 
-Repo-safe evidence:
+- [x] Production Vercel URL is live.
+- [x] Public demo workspace works without sign-in.
+- [x] DynamoDB single-table entities and repository boundary are implemented.
+- [x] Architecture diagram labels DynamoDB as the primary backend.
+- [x] AWS database proof screenshot is captured outside the repository.
+- [ ] Vercel Team ID is recorded outside the repository.
+- [ ] Final video is public, accessible without sign-in, and under three minutes.
+- [ ] Main article, LinkedIn post, and X thread are public and linked in Devpost.
+- [ ] Final Devpost page has been checked in an incognito window.
 
-- [x] DynamoDB single-table design documented in `docs/dynamodb-plan.md`.
-- [x] ElectroDB entities implemented in `lib/dynamodb/entities.ts`.
-- [x] Repository boundary implemented in `lib/repositories/content-repository.ts`.
-- [x] CSV metrics import UI and API implemented.
-- [x] Actionable task generation API and task display implemented.
-- [x] Optional YouTube Data API sync described in the submission draft.
-- [x] `pnpm typecheck` and `pnpm lint` passed on 2026-06-12 before this document was created.
+## Claim Guardrails
 
-Private or external evidence still needed:
-
-- [x] Production Vercel URL.
-- [ ] Vercel Team ID recorded outside the repository.
-- [x] Storage Configuration or AWS DynamoDB proof screenshot captured outside the repository.
-- [ ] Production smoke with least-privilege IAM identity.
-- [ ] Real YouTube sync success smoke with `GOOGLE_PUBLIC_API_KEY`.
-- [ ] Public demo video URL under 3 minutes.
-- [ ] Optional bonus content URLs with required hackathon attribution.
-
-## Production Smoke Checklist
-
-Run this after deployment and after environment variables are configured:
-
-- [x] Open production `/dashboard` without signing in and confirm the demo workspace loads.
-- [x] Open `/calendar` and verify the monthly timeline.
-- [x] Open `/post/post-01` and save a platform variant.
-- [x] Update post status and verify the conditional write path does not silently overwrite stale state.
-- [x] Save manual metrics from post detail.
-- [ ] Import CSV metrics from `/analytics` and verify the raw CSV is backed up through S3 when configured.
-- [x] Generate insights from `/analytics`.
-- [x] Generate actionable tasks and confirm they appear on `/dashboard` and `/calendar`.
-- [ ] Run YouTube live stats sync with a public video ID when `GOOGLE_PUBLIC_API_KEY` is configured.
-- [x] Confirm `/settings` is protected by Clerk when Clerk keys are configured.
-- [ ] Run Resend smoke with a safe test recipient.
-- [x] Confirm no server secrets, AWS credentials, Resend keys, Google API key, or Vercel Team ID are visible in client code or public docs.
-
-## Bonus Content Draft Angles
-
-- "Why CreatorOS uses DynamoDB access patterns for content operations."
-- "From dashboard scaffold to a shippable content operations loop on Vercel."
-- "Building an English-first B2B creator workflow with Vercel, DynamoDB, S3, and AI."
-
-Required line for each public post:
-
-> This piece was created for the H0: Hack the Zero Stack hackathon. #H0Hackathon
+- Do not claim measured single-digit millisecond latency; no benchmark supports that statement.
+- Describe YouTube metrics as optional unless a production success check has been completed.
+- Do not demonstrate PDF carousel export until its encoding issue is fixed and verified.
+- Do not imply that CreatorOS publishes directly to social platforms.
+- Do not show AWS, Vercel, Clerk, or other private consoles in the demo video.

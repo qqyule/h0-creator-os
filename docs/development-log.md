@@ -111,3 +111,11 @@ Use this file to record concise development progress. Do not paste raw chat tran
 - Verification: `pnpm lint`, `pnpm typecheck`, `pnpm build`, and `git diff --check` passed. Browser checks confirmed status update, manual metrics, CSV file-type error, and AI settings permission error toasts on the local demo fallback server.
 - Risks or notes: `CREATOROS_BASE_URL=http://localhost:3124 pnpm smoke:main-path` was blocked by an expired local AWS session. Fallback smoke on `localhost:3125` passed until the pre-existing PDF carousel path failed with `WinAnsi cannot encode "→"`.
 - Next: Re-run full smoke after AWS reauthentication and fix or avoid the PDF carousel arrow encoding issue before treating local smoke as fully green.
+
+## 2026-06-18 - H0 Submission Materials Optimized
+
+- Goal: Align the Devpost description, demo video, technical narrative, and bonus content with Devpost's latest judging guidance.
+- Changed: Unified the public positioning, rewrote the 745-word Devpost description around specific users and DynamoDB access patterns, replaced the recording plan with a 2:41 timeline and 300-word creator narration, shortened the Remotion animation to 39 seconds, and added ready-to-publish article, LinkedIn, and X drafts.
+- Verification: `pnpm lint`, `pnpm typecheck`, `pnpm build`, `git diff --check`, `pnpm video:render:animations`, ffprobe duration/dimension checks, representative frame review, desktop/mobile Playwright checks, and read-only HTTP checks for the five public demo routes passed.
+- Risks or notes: Remotion still reports the existing `zod@4.4.3` versus expected `4.3.6` warning, but the 1170-frame render succeeds. Local browser verification shows the known Vercel Analytics 404 and a Clerk local-key redirect warning; the landing page itself renders without an error overlay or horizontal overflow. Public video and bonus URLs remain external publication work.
+- Next: Record product footage and creator narration, edit and publish the final video, publish the three bonus pieces, record the Vercel Team ID outside the repository, and complete the incognito Devpost review.

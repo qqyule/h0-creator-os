@@ -99,8 +99,8 @@ function ProblemToProduct() {
   const frame = useCurrentFrame()
   const { fps } = useVideoConfig()
   const opacity = fadeInOut(frame, sceneFrames.problem)
-  const productScale = 0.92 + smoothSpring(frame, { fps }, 90, 42) * 0.08
-  const glow = clampInterpolate(frame, [170, 270], [0, 1])
+  const productScale = 0.92 + smoothSpring(frame, { fps }, 58, 32) * 0.08
+  const glow = clampInterpolate(frame, [105, 180], [0, 1])
   const cards = [
     { label: "Calendar", x: 720, y: 150, dx: -260, dy: -80, color: theme.primarySoft },
     { label: "Drafts", x: 214, y: 760, dx: -300, dy: 120, color: theme.success },
@@ -118,9 +118,9 @@ function ProblemToProduct() {
       />
 
       {cards.map((card, index) => {
-        const enter = smoothSpring(frame, { fps }, 12 + index * 12, 45)
-        const pull = clampInterpolate(frame, [288, 378], [0, 1])
-        const cardOpacity = enter * (1 - clampInterpolate(frame, [330, 390], [0, 0.82]))
+        const enter = smoothSpring(frame, { fps }, 8 + index * 9, 32)
+        const pull = clampInterpolate(frame, [130, 195], [0, 1])
+        const cardOpacity = enter * (1 - clampInterpolate(frame, [175, 225], [0, 0.82]))
         const x = card.x + card.dx * (1 - enter) + (960 - card.x) * 0.18 * pull
         const y = card.y + card.dy * (1 - enter) + (540 - card.y) * 0.12 * pull
         const rotate = interpolate(enter, [0, 1], [index % 2 === 0 ? -8 : 8, 0])
@@ -297,10 +297,10 @@ function OperatingLoop() {
     "Tasks",
   ]
   const centerX = 960
-  const centerY = 560
+  const centerY = 620
   const radiusX = 575
-  const radiusY = 300
-  const activeIndex = Math.min(nodes.length - 1, Math.floor(clampInterpolate(frame, [40, 395], [0, nodes.length])))
+  const radiusY = 260
+  const activeIndex = Math.min(nodes.length - 1, Math.floor(clampInterpolate(frame, [18, 145], [0, nodes.length])))
 
   return (
     <AbsoluteFill style={{ ...sceneWrap, opacity }}>
@@ -328,7 +328,7 @@ function OperatingLoop() {
           stroke={theme.primarySoft}
           strokeWidth="7"
           strokeLinecap="round"
-          strokeDasharray={`${clampInterpolate(frame, [42, 415], [0, 2920])} 2920`}
+          strokeDasharray={`${clampInterpolate(frame, [20, 155], [0, 2920])} 2920`}
           transform={`rotate(-90 ${centerX} ${centerY})`}
           filter="drop-shadow(0 0 14px rgba(129, 140, 248, 0.65))"
         />
@@ -337,7 +337,7 @@ function OperatingLoop() {
         const angle = (Math.PI * 2 * index) / nodes.length - Math.PI / 2
         const x = centerX + Math.cos(angle) * radiusX
         const y = centerY + Math.sin(angle) * radiusY
-        const reveal = smoothSpring(frame, { fps }, 32 + index * 34, 26)
+        const reveal = smoothSpring(frame, { fps }, 14 + index * 13, 20)
         const isActive = index <= activeIndex
         const color = index === 6 ? theme.insight : index >= 5 ? theme.success : theme.primarySoft
 
@@ -357,7 +357,7 @@ function OperatingLoop() {
         style={{
           position: "absolute",
           left: 760,
-          top: 455,
+          top: 515,
           width: 400,
           height: 210,
           borderRadius: 34,
@@ -450,7 +450,7 @@ function ArchitectureScene() {
       <SceneHeader
         eyebrow="Submission architecture"
         title="Vercel app, DynamoDB primary backend"
-        description="Server route handlers own integrations and persistence. The browser never receives database, storage, email, or model credentials."
+        description="Workspace, timeline, status, and platform access patterns map to targeted DynamoDB keys and indexes."
       />
       <svg width="1920" height="1080" style={{ position: "absolute", inset: 0 }}>
         {main.slice(0, -1).map((node, index) => {
@@ -603,7 +603,7 @@ function ArchitectureNode({
 }
 
 function DatabaseProofCard({ frame }: { frame: number }) {
-  const opacity = clampInterpolate(frame, [520, 590], [0, 1])
+  const opacity = clampInterpolate(frame, [465, 535], [0, 1])
   return (
     <div
       style={{
@@ -666,9 +666,9 @@ function ClosingCard() {
         <LogoMark size={82} />
         <div style={{ fontSize: 90, fontWeight: 850, lineHeight: 1, marginTop: 28 }}>CreatorOS</div>
         <div style={{ color: theme.muted, fontSize: 32, lineHeight: 1.4, marginTop: 28 }}>
-          Built to ship content operations,
+          Content operations for
           <br />
-          not just generate drafts.
+          cross-platform creator teams.
         </div>
         <div
           style={{

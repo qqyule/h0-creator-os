@@ -1,6 +1,6 @@
 # CreatorOS
 
-CreatorOS is an English-first B2B content operations system for creators, small studios, and cross-border content teams. It helps a team plan, adapt, ship, measure, and improve the next 30 posts from one workspace.
+**Content operations for cross-platform creator teams.** CreatorOS helps small creator teams plan the next 30 posts, adapt each idea for LinkedIn, X, YouTube, and Rednote, track execution, and turn performance data into the next actions.
 
 Built for **H0: Hack the Zero Stack with Vercel and AWS Databases**.
 
@@ -14,7 +14,7 @@ Built for **H0: Hack the Zero Stack with Vercel and AWS Databases**.
 | Required AWS database | Amazon DynamoDB as the primary backend |
 | Architecture diagram | [SVG](./docs/architecture-diagram.svg) / [PNG](./docs/architecture-diagram.png) |
 | AWS database proof | Captured outside the repository for submission |
-| Vercel Team ID | Recorded outside the repository for submission |
+| Vercel Team ID | Pending; must be recorded outside the repository |
 | Demo video | Pending final public video URL |
 
 ![CreatorOS architecture diagram](./docs/architecture-diagram.png)

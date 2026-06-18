@@ -95,11 +95,10 @@ export function LandingPage() {
             Your command center for <span className="text-primary">creator operations.</span>
           </h1>
           <p className="mt-6 text-balance text-2xl font-medium leading-tight text-primary sm:text-3xl">
-            Plan, adapt, and ship your next 30 posts.
+            Content operations for cross-platform creator teams.
           </p>
-          <p className="mt-2 text-base text-muted-foreground sm:text-lg">面向独立创作者与小团队的内容运营系统</p>
           <p className="mt-8 max-w-xl text-base leading-8 text-foreground/82">
-            Turn positioning into a 30-day plan. Generate multi-platform rewrites. Track workflows. Capture feedback. Measure impact. Optimize faster.
+            Plan the next 30 posts, adapt each idea for LinkedIn, X, YouTube, and Rednote, track execution, and turn performance data into the next actions.
           </p>
 
           <div className="mt-8 flex flex-wrap gap-3">

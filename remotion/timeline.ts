@@ -3,10 +3,10 @@ export const WIDTH = 1920
 export const HEIGHT = 1080
 
 export const sceneFrames = {
-  problem: 14 * FPS,
-  loop: 16 * FPS,
-  architecture: 23 * FPS,
-  closing: 8 * FPS,
+  problem: 8 * FPS,
+  loop: 6 * FPS,
+  architecture: 20 * FPS,
+  closing: 5 * FPS,
 } as const
 
 export const sceneStarts = {

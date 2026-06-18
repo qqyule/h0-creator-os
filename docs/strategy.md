@@ -1,14 +1,18 @@
 # H0 Strategy
 
-Last updated: 2026-06-09
+Last updated: 2026-06-18
 
 ## Positioning
 
-CreatorOS should not be pitched as a generic AI content calendar. It should be pitched as a B2B content operations system for creators and small teams who publish across global and Chinese platforms.
+CreatorOS should not be pitched as a generic AI content calendar. It is content operations for cross-platform creator teams.
 
 Primary public message:
 
-> CreatorOS helps creators plan, adapt, and ship the next 30 posts across platforms, then feeds performance data back into the next planning cycle.
+> CreatorOS helps small creator teams plan the next 30 posts, adapt each idea for LinkedIn, X, YouTube, and Rednote, track execution, and turn performance data into the next actions.
+
+Database rationale:
+
+> CreatorOS uses DynamoDB because its core reads are organized by workspace, monthly timeline, workflow status, and platform—access patterns that map naturally to a workspace-scoped single-table model with targeted GSIs.
 
 The strongest differentiator is the workflow loop:
 

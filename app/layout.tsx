@@ -16,9 +16,9 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'CreatorOS — Plan, adapt, and ship your next 30 posts',
+  title: 'CreatorOS — Content operations for cross-platform creator teams',
   description:
-    'An English-first content operations system for indie creators and small teams publishing across global and Chinese platforms.',
+    'Plan the next 30 posts, adapt each idea for LinkedIn, X, YouTube, and Rednote, track execution, and turn performance data into the next actions.',
   generator: 'v0.app',
   icons: {
     icon: [{ url: '/icon.svg', type: 'image/svg+xml' }],

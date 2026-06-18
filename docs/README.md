@@ -1,15 +1,15 @@
 # CreatorOS Documents
 
-Last updated: 2026-06-13
+Last updated: 2026-06-18
 
-CreatorOS is an English-first content operations system for independent creators, small studios, and cross-border content teams. The H0 version should prove one complete workflow: plan, adapt, ship, measure, and improve the next 30 posts.
+CreatorOS is content operations for cross-platform creator teams. The H0 version proves one complete workflow: plan, adapt, ship, measure, and improve the next 30 posts.
 
 For the judge-facing project summary, live demo link, requirement coverage, and one-glance feature explanation, start with the root [README](../README.md). This file is the implementation-facing documentation index.
 
 ## Current Decisions
 
 - Primary competition track: Track 2, Monetizable B2B app.
-- Product positioning: `CreatorOS - Plan, adapt, and ship your next 30 posts.`
+- Product positioning: `Content operations for cross-platform creator teams.`
 - Primary backend choice: Amazon DynamoDB.
 - DynamoDB access layer: ElectroDB.
 - Object storage: Amazon S3 through AWS SDK for JavaScript v3.
@@ -34,6 +34,9 @@ For the judge-facing project summary, live demo link, requirement coverage, and 
 - [Development Plan](./development-plan.md): implementation sequence from the current scaffold to the MVP golden path.
 - [TODO List](./todolist.md): phase-based checklist for P0, P1, submission, and deferred work.
 - [Development Log](./development-log.md): concise progress log template for implementation sessions.
+- [Submission Pack](./submission-pack.md): final Devpost copy, evidence guardrails, and submission fields.
+- [Demo Video Script](./demo-video-recording-script.md): 2:41 recording timeline, narration, and QA checklist.
+- [Bonus Content Pack](./bonus-content-pack.md): main article, LinkedIn post, and X thread drafts.
 
 ## Daily Development Workflow
 
